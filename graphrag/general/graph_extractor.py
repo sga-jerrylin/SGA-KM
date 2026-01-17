@@ -147,5 +147,11 @@ class GraphExtractor(Extractor):
         records = rcds
         maybe_nodes, maybe_edges = self._entities_and_relations(chunk_key, records, self._prompt_variables[self._tuple_delimiter_key])
         out_results.append((maybe_nodes, maybe_edges, token_count))
-        if self.callback:
-            self.callback(0.5+0.1*len(out_results)/num_chunks, msg = f"Entities extraction of chunk {chunk_seq} {len(out_results)}/{num_chunks} done, {len(maybe_nodes)} nodes, {len(maybe_edges)} edges, {token_count} tokens.")
+        # 只在里程碑节点报告进度 (25%, 50%, 75%)
+        progress_pct = len(out_results) / num_chunks
+        milestones = [0.25, 0.5, 0.75]
+        for milestone in milestones:
+            prev_pct = (len(out_results) - 1) / num_chunks if len(out_results) > 1 else 0
+            if prev_pct < milestone <= progress_pct and self.callback:
+                self.callback(0.5 + 0.1 * progress_pct, msg=f"  -> {self.doc_name} 进度 {len(out_results)}/{num_chunks}...")
+                break

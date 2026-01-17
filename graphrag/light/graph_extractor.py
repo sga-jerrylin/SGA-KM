@@ -82,9 +82,7 @@ class GraphExtractor(Extractor):
         glean_result = ""
         if_loop_result = ""
         history = []
-        logging.info(f"Start processing for {chunk_key}: {content[:25]}...")
-        if self.callback:
-            self.callback(msg=f"Start processing for {chunk_key}: {content[:25]}...")
+        logging.info(f"处理 {self.doc_name}: {content[:25]}...")
         async with chat_limiter:
             final_result = await trio.to_thread.run_sync(self._chat, "", [{"role": "user", "content": hint_prompt}], gen_conf, task_id)
         token_count += num_tokens_from_string(hint_prompt + final_result)
@@ -108,9 +106,7 @@ class GraphExtractor(Extractor):
                 break
             history.extend([{"role": "assistant", "content": if_loop_result}, {"role": "user", "content": self._continue_prompt}])
 
-        logging.info(f"Completed processing for {chunk_key}: {content[:25]}... after {now_glean_index} gleanings, {token_count} tokens.")
-        if self.callback:
-            self.callback(msg=f"Completed processing for {chunk_key}: {content[:25]}... after {now_glean_index} gleanings, {token_count} tokens.")
+        logging.info(f"处理完成 {self.doc_name}: {content[:25]}...")
         records = split_string_by_multi_markers(
             final_result,
             [self._context_base["record_delimiter"], self._context_base["completion_delimiter"]],
@@ -124,8 +120,15 @@ class GraphExtractor(Extractor):
         records = rcds
         maybe_nodes, maybe_edges = self._entities_and_relations(chunk_key, records, self._context_base["tuple_delimiter"])
         out_results.append((maybe_nodes, maybe_edges, token_count))
-        if self.callback:
-            self.callback(
-                0.5 + 0.1 * len(out_results) / num_chunks,
-                msg=f"Entities extraction of chunk {chunk_seq} {len(out_results)}/{num_chunks} done, {len(maybe_nodes)} nodes, {len(maybe_edges)} edges, {token_count} tokens.",
-            )
+        # 只在里程碑节点报告进度 (25%, 50%, 75%)
+        progress_pct = len(out_results) / num_chunks
+        milestones = [0.25, 0.5, 0.75]
+        for milestone in milestones:
+            # 检查是否刚好跨过这个里程碑
+            prev_pct = (len(out_results) - 1) / num_chunks if len(out_results) > 1 else 0
+            if prev_pct < milestone <= progress_pct and self.callback:
+                self.callback(
+                    0.5 + 0.1 * progress_pct,
+                    msg=f"  -> {self.doc_name} 进度 {len(out_results)}/{num_chunks}...",
+                )
+                break

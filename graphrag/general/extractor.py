@@ -107,8 +107,9 @@ class Extractor:
                 maybe_edges[(if_relation["src_id"], if_relation["tgt_id"])].append(if_relation)
         return dict(maybe_nodes), dict(maybe_edges)
 
-    async def __call__(self, doc_id: str, chunks: list[str], callback: Callable | None = None, task_id: str = ""):
+    async def __call__(self, doc_id: str, chunks: list[str], callback: Callable | None = None, task_id: str = "", doc_name: str = ""):
         self.callback = callback
+        self.doc_name = doc_name or doc_id[:8]  # 使用文件名，或显示 doc_id 前 8 位
         start_ts = trio.current_time()
 
         async def extract_all(doc_id, chunks, max_concurrency=MAX_CONCURRENT_PROCESS_AND_EXTRACT_CHUNK, task_id=""):
@@ -129,7 +130,7 @@ class Extractor:
                         await self._process_single_content(chunk_key_dp, idx, total, out_results, task_id)
                     except Exception as e:
                         error_count += 1
-                        error_msg = f"Error processing chunk {idx + 1}/{total}: {str(e)}"
+                        error_msg = f"[{self.doc_name}] 处理出错: {str(e)}"
                         logging.warning(error_msg)
                         if self.callback:
                             self.callback(msg=error_msg)
@@ -142,7 +143,7 @@ class Extractor:
                     nursery.start_soon(worker, (doc_id, ck), i, len(chunks), task_id)
 
             if error_count > 0:
-                warning_msg = f"Completed with {error_count} errors (out of {len(chunks)} chunks processed)"
+                warning_msg = f"[{self.doc_name}] 完成，但有 {error_count} 个分块出错 (共 {len(chunks)} 个)"
                 logging.warning(warning_msg)
                 if self.callback:
                     self.callback(msg=warning_msg)
@@ -168,7 +169,7 @@ class Extractor:
             sum_token_count += token_count
         now = trio.current_time()
         if self.callback:
-            self.callback(msg=f"Entities and relationships extraction done, {len(maybe_nodes)} nodes, {len(maybe_edges)} edges, {sum_token_count} tokens, {now - start_ts:.2f}s.")
+            self.callback(msg=f"[OK] {self.doc_name} 提取完成 - {len(maybe_nodes)} 实体, {len(maybe_edges)} 关系")
         start_ts = now
         logging.info("Entities merging...")
         all_entities_data = []
@@ -185,7 +186,7 @@ class Extractor:
 
         now = trio.current_time()
         if self.callback:
-            self.callback(msg=f"Entities merging done, {now - start_ts:.2f}s.")
+            self.callback(msg=f"  -> {self.doc_name} 实体合并完成")
 
         start_ts = now
         logging.info("Relationships merging...")
@@ -203,7 +204,7 @@ class Extractor:
 
         now = trio.current_time()
         if self.callback:
-            self.callback(msg=f"Relationships merging done, {now - start_ts:.2f}s.")
+            self.callback(msg=f"  -> {self.doc_name} 关系合并完成")
 
         if not len(all_entities_data) and not len(all_relationships_data):
             logging.warning("Didn't extract any entities and relationships, maybe your LLM is not working")

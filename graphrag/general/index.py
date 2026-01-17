@@ -491,15 +491,22 @@ async def generate_subgraph(
             entity_types=entity_types,
         )
 
+        # 获取文档名称用于日志显示
+        try:
+            _, doc_info = DocumentService.get_by_id(doc_id)
+            doc_name = doc_info.name if doc_info else doc_id[:8]
+        except Exception:
+            doc_name = doc_id[:8]  # fallback 显示 ID 前 8 位
+
         # Extract entities and relations
-        callback(msg=f"Extracting entities and relations from {len(chunks)} chunks")
-        ents, rels = await ext(doc_id, chunks, callback, task_id=task_id)
+        callback(msg=f"[>] {doc_name} 开始处理 (共 {len(chunks)} 个分块)")
+        ents, rels = await ext(doc_id, chunks, callback, task_id=task_id, doc_name=doc_name)
 
         if not ents and not rels:
-            callback(msg=f"No entities or relations extracted from doc {doc_id}")
+            callback(msg=f"[!] {doc_name} 未提取到实体或关系")
             return None
 
-        callback(msg=f"Extracted {len(ents)} entities and {len(rels)} relations")
+        callback(msg=f"[OK] {doc_name} 提取完成 - {len(ents)} 实体, {len(rels)} 关系")
 
         # Build subgraph
         subgraph = nx.Graph()
