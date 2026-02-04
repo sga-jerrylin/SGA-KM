@@ -396,25 +396,32 @@ class NewsSyncService:
                     if err:
                         logging.error(f"[NewsSync] Upload error for {file_name}: {err}")
                         continue
+
+                    # 上传成功，计数
+                    sync_count += 1
+                    updated_years.add(year)
+                    logging.info(f"[NewsSync] Successfully uploaded: {file_name}")
+
                     # 强制使用 naive (general) 解析器，不管知识库默认设置
                     if files:
                         doc = files[0][0]  # (doc_dict, blob)
                         doc_id = doc.get("id") if isinstance(doc, dict) else doc.id
-                        DocumentService.update_by_id(doc_id, {"parser_id": "naive"})
-                        logging.info(f"[NewsSync] Set parser to 'naive' for doc {doc_id}")
+                        try:
+                            DocumentService.update_by_id(doc_id, {"parser_id": "naive"})
+                            logging.info(f"[NewsSync] Set parser to 'naive' for doc {doc_id}")
+                        except Exception as update_err:
+                            logging.error(f"[NewsSync] Failed to update parser for {doc_id}: {update_err}")
 
                         # 自动触发解析 - 使用 DocumentService.run()
                         try:
-                            doc_for_run = doc if isinstance(doc, dict) else {"id": doc.id, "kb_id": kb_id, "parser_id": "naive"}
+                            doc_for_run = dict(doc) if isinstance(doc, dict) else {"id": doc_id}
+                            doc_for_run["id"] = doc_id
                             doc_for_run["kb_id"] = kb_id
                             doc_for_run["parser_id"] = "naive"
                             DocumentService.run(kb_inst.tenant_id, doc_for_run, {})
                             logging.info(f"[NewsSync] Queued parsing task for doc {doc_id}")
                         except Exception as parse_err:
-                            logging.error(f"[NewsSync] Failed to queue parsing for {doc_id}: {parse_err}")
-                    sync_count += 1
-                    updated_years.add(year)
-                    logging.info(f"[NewsSync] Successfully synced: {file_name}")
+                            logging.error(f"[NewsSync] Failed to queue parsing for {doc_id}: {parse_err}", exc_info=True)
                 except Exception as e:
                     logging.error(f"[NewsSync] Failed to upload {file_name}: {e}", exc_info=True)
 

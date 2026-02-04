@@ -321,12 +321,13 @@ class ArchiveSyncService:
         return None
 
     @classmethod
-    def query_archives(cls, doctype=None, start_date=None, end_date=None, page=1, page_size=100):
+    def query_archives(cls, doctype=None, start_date=None, end_date=None, page=1, page_size=100, userid="308569"):
         """
         查询档案元数据
         :param doctype: 文档类型代码 (如 'SFD', 'FP')
         :param start_date: 开始日期 YYYYMMDD
         :param end_date: 结束日期 YYYYMMDD
+        :param userid: 用户ID（必填字段）
         :return: 档案列表
         """
         try:
@@ -334,7 +335,18 @@ class ArchiveSyncService:
             api_base_url = cls.get_api_base_url()
             url = f"{api_base_url}{cls.QUERY_URL}"
 
-            payload = {"sysno": cls.SYSTEM_ID}
+            # userid 是必填字段
+            payload = {
+                "sysno": "",
+                "userid": userid,
+                "docclassfy": "",
+                "docbarcode": "",
+                "docno": "",
+                "doctitle": "",
+                "doccomptaxno": "913502001550054395",
+                "archivetypename": "文书档案",
+                "isfilepool": "false"
+            }
             if doctype:
                 payload["doctype"] = doctype
             if start_date:
@@ -342,15 +354,18 @@ class ArchiveSyncService:
             if end_date:
                 payload["EndDate"] = end_date
 
+            logging.info(f"[ArchiveSync] Query archives with payload: {payload}")
             resp = requests.post(url, headers=headers, json=payload, timeout=60)
             data = resp.json()
 
             if "result" in data and isinstance(data["result"], list):
+                logging.info(f"[ArchiveSync] Query returned {len(data['result'])} records")
                 return data["result"]
             elif data.get("result") == "false":
                 logging.warning(f"[ArchiveSync] Query returned no data: {data.get('message')}")
                 return []
             else:
+                logging.warning(f"[ArchiveSync] Unexpected response: {data}")
                 return []
         except Exception as e:
             logging.error(f"[ArchiveSync] Query archives error: {e}")
