@@ -715,8 +715,8 @@ const AdminSettings = () => {
                 <Input
                   id="sync-time"
                   type="time"
-                  defaultValue={syncConfig?.sync_time || '02:00'}
-                  onBlur={(e) => handleSyncTimeChange(e.target.value)}
+                  value={syncConfig?.sync_time || '02:00'}
+                  onChange={(e) => handleSyncTimeChange(e.target.value)}
                   disabled={updateSyncMutation.isPending}
                 />
               </div>
@@ -815,8 +815,8 @@ const AdminSettings = () => {
                 <Input
                   id="graph-regen-time"
                   type="time"
-                  defaultValue={syncConfig?.graph_regen_time || '04:00'}
-                  onBlur={(e) => handleGraphRegenTimeChange(e.target.value)}
+                  value={syncConfig?.graph_regen_time || '04:00'}
+                  onChange={(e) => handleGraphRegenTimeChange(e.target.value)}
                   disabled={updateSyncMutation.isPending}
                 />
               </div>
@@ -1065,8 +1065,8 @@ const AdminSettings = () => {
                 <Input
                   id="archive-sync-time"
                   type="time"
-                  defaultValue={archiveConfig?.sync_time || '03:00'}
-                  onBlur={(e) => handleArchiveSyncTimeChange(e.target.value)}
+                  value={archiveConfig?.sync_time || '03:00'}
+                  onChange={(e) => handleArchiveSyncTimeChange(e.target.value)}
                   disabled={updateArchiveMutation.isPending}
                 />
               </div>
@@ -1171,8 +1171,8 @@ const AdminSettings = () => {
                 <Input
                   id="archive-graph-regen-time"
                   type="time"
-                  defaultValue={archiveConfig?.graph_regen_time || '05:00'}
-                  onBlur={(e) =>
+                  value={archiveConfig?.graph_regen_time || '05:00'}
+                  onChange={(e) =>
                     handleArchiveGraphRegenTimeChange(e.target.value)
                   }
                   disabled={updateArchiveMutation.isPending}

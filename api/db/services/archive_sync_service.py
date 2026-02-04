@@ -142,6 +142,7 @@ class ArchiveSyncService:
         """
         从档案系统获取所有文档分类名称 (docclassfyname)
         通过查询档案数据，提取唯一的分类名称
+        返回格式: [{"code": "党群", "name": "党群"}, ...]
         """
         try:
             logging.info("[ArchiveSync] Fetching docclassfyname from archive data...")
@@ -162,9 +163,7 @@ class ArchiveSyncService:
                         if classfy_name and classfy_name.strip():
                             all_categories.add(classfy_name.strip())
 
-                    # 如果不指定 doctype 返回了数据，就不需要继续尝试其他类型
-                    if not doctype and archives:
-                        break
+                    # 如果获取到数据就继续尝试其他类型以获取更多分类
                 except Exception as e:
                     logging.warning(f"[ArchiveSync] Error querying doctype '{doctype}': {e}")
                     continue
@@ -173,8 +172,9 @@ class ArchiveSyncService:
                 logging.warning("[ArchiveSync] No categories extracted, trying DOCTYPE_URL fallback...")
                 return cls._fetch_doctypes_fallback()
 
-            category_list = sorted(list(all_categories))
-            logging.info(f"[ArchiveSync] Extracted {len(category_list)} unique docclassfyname: {category_list}")
+            # 转换为前端期望的格式: [{code: "党群", name: "党群"}, ...]
+            category_list = [{"code": name, "name": name, "desc": ""} for name in sorted(all_categories)]
+            logging.info(f"[ArchiveSync] Extracted {len(category_list)} unique docclassfyname: {[c['name'] for c in category_list]}")
             return category_list
 
         except Exception as e:
