@@ -54,13 +54,11 @@ export const LlmIcon = ({
   name,
   height = 48,
   width = 48,
-  size = 'large',
   imgClass,
 }: {
   name: string;
   height?: number;
   width?: number;
-  size?: AvatarSize;
   imgClass?: string;
 }) => {
   const isDark = useIsDarkTheme();

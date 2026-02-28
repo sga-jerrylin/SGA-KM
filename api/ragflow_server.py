@@ -138,11 +138,22 @@ if __name__ == '__main__':
         t = threading.Thread(target=update_progress, daemon=True)
         t.start()
 
+    def delayed_start_news_sync_scheduler():
+        """Start the news sync scheduler after a delay"""
+        try:
+            from api.db.services.news_sync_service import NewsSyncService
+            logging.info("Starting News Sync Scheduler...")
+            NewsSyncService.start_scheduler()
+        except Exception as e:
+            logging.error(f"Failed to start News Sync Scheduler: {e}")
+
     if RuntimeConfig.DEBUG:
         if os.environ.get("WERKZEUG_RUN_MAIN") == "true":
             threading.Timer(1.0, delayed_start_update_progress).start()
+            threading.Timer(2.0, delayed_start_news_sync_scheduler).start()
     else:
         threading.Timer(1.0, delayed_start_update_progress).start()
+        threading.Timer(2.0, delayed_start_news_sync_scheduler).start()
 
     # init smtp server
     if settings.SMTP_CONF:

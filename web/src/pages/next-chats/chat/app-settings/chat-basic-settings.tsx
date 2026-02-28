@@ -14,7 +14,9 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Textarea } from '@/components/ui/textarea';
+import { PermissionRole } from '@/constants/permission';
 import { useTranslate } from '@/hooks/common-hooks';
 import { useFormContext } from 'react-hook-form';
 
@@ -114,6 +116,54 @@ export default function ChatBasicSetting() {
       <TavilyFormField></TavilyFormField>
       <KnowledgeBaseFormField></KnowledgeBaseFormField>
       <MetadataFilter></MetadataFilter>
+      <FormField
+        control={form.control}
+        name="permission"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel tooltip={t('permissionsTip')}>
+              {t('permissions')}
+            </FormLabel>
+            <FormControl>
+              <RadioGroup
+                onValueChange={field.onChange}
+                value={field.value || PermissionRole.Me}
+                className="flex gap-4"
+              >
+                <FormItem className="flex items-center gap-2">
+                  <FormControl>
+                    <RadioGroupItem
+                      value={PermissionRole.Me}
+                      id="chat-perm-me"
+                    />
+                  </FormControl>
+                  <FormLabel
+                    className="font-normal !m-0 cursor-pointer"
+                    htmlFor="chat-perm-me"
+                  >
+                    {t('me')}
+                  </FormLabel>
+                </FormItem>
+                <FormItem className="flex items-center gap-2">
+                  <FormControl>
+                    <RadioGroupItem
+                      value={PermissionRole.Team}
+                      id="chat-perm-team"
+                    />
+                  </FormControl>
+                  <FormLabel
+                    className="font-normal !m-0 cursor-pointer"
+                    htmlFor="chat-perm-team"
+                  >
+                    {t('team')}
+                  </FormLabel>
+                </FormItem>
+              </RadioGroup>
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
     </div>
   );
 }

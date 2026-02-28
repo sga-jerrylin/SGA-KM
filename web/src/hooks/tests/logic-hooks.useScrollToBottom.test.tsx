@@ -22,12 +22,9 @@ function createMockContainer({ atBottom = true } = {}) {
   } as any;
 }
 
-// Helper to flush all timers and microtasks
 async function flushAll() {
   jest.runAllTimers();
-  // Flush microtasks
   await Promise.resolve();
-  // Sometimes, effects queue more timers, so run again
   jest.runAllTimers();
   await Promise.resolve();
 }
@@ -89,12 +86,10 @@ describe('useScrollToBottom', () => {
       { initialProps: { messages: [] } },
     );
 
-    // Simulate user scrolls up before messages change
     await act(async () => {
       containerRef.current.scrollTop = 0;
       containerRef.current.addEventListener.mock.calls[0][1]();
       await flushAll();
-      // Advance fake timers by 10ms instead of real setTimeout
       jest.advanceTimersByTime(10);
       console.log('AFTER SCROLL: isAtBottom:', result.current.isAtBottom);
     });
@@ -106,14 +101,12 @@ describe('useScrollToBottom', () => {
 
     expect(mockScroll).not.toHaveBeenCalled();
 
-    // Optionally, flush again after the assertion to see if it gets called late
     await flushAll();
   });
 
   it('should indicate button should appear when user is not at bottom', () => {
     const containerRef = createMockContainer({ atBottom: false });
     const { result } = renderHook(() => useScrollToBottom([], containerRef));
-    // The button should appear in the UI when isAtBottom is false
     expect(result.current.isAtBottom).toBe(false);
   });
 });

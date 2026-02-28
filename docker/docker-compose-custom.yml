@@ -10,6 +10,7 @@ services:
       context: ..
       dockerfile: Dockerfile
     container_name: ragflow-server
+    command: ["--enable-adminserver"]
     ports:
       - ${SVR_HTTP_PORT}:9380
       - ${SVR_WEB_HTTP_PORT}:80
@@ -25,6 +26,8 @@ services:
       - ../history_data_agent:/ragflow/history_data_agent
       - ./service_conf.yaml.template:/ragflow/conf/service_conf.yaml.template
       - ./entrypoint.sh:/ragflow/entrypoint.sh
+      - uv_tools_data:/ragflow/uv_tools
+      - venv_data:/ragflow/.venv
     env_file: .env
     environment:
       - TZ=${TIMEZONE}
@@ -33,5 +36,6 @@ services:
     networks:
       - ragflow
     restart: on-failure
+    shm_size: '4gb'
     extra_hosts:
       - "host.docker.internal:host-gateway"

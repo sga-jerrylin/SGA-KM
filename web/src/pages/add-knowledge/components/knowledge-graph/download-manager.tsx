@@ -1,27 +1,38 @@
-import React, { useState, useCallback } from 'react';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
-import { 
-  Download, 
-  FileText, 
-  Package, 
-  Settings,
-  CheckCircle,
-  AlertCircle,
-  Clock
-} from 'lucide-react';
-import { useTranslation } from 'react-i18next';
-import { message } from 'antd';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useDownloadNodeContent } from '@/hooks/knowledge-graph-hooks';
+import { message } from 'antd';
+import {
+  AlertCircle,
+  CheckCircle,
+  Clock,
+  Download,
+  FileText,
+  Package,
+  Settings,
+} from 'lucide-react';
+import React, { useCallback, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface DownloadManagerProps {
   nodeId: string;
-  nodeInfo: any;
   associatedFiles?: any;
 }
 
@@ -37,24 +48,41 @@ interface DownloadTask {
 
 const DownloadManager: React.FC<DownloadManagerProps> = ({
   nodeId,
-  nodeInfo,
-  associatedFiles
+  associatedFiles,
 }) => {
   const { t } = useTranslation();
   const { downloadContent, loading } = useDownloadNodeContent();
-  
+
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedFormat, setSelectedFormat] = useState<'txt' | 'json' | 'csv' | 'xlsx'>('txt');
+  const [selectedFormat, setSelectedFormat] = useState<
+    'txt' | 'json' | 'csv' | 'xlsx'
+  >('txt');
   const [includeMetadata, setIncludeMetadata] = useState(true);
   const [includeFiles, setIncludeFiles] = useState(true);
   const [includeChunks, setIncludeChunks] = useState(true);
   const [downloadTasks, setDownloadTasks] = useState<DownloadTask[]>([]);
 
   const formatOptions = [
-    { value: 'txt', label: t('knowledgeGraph.formatTxt') + ' (.txt)', description: t('knowledgeGraph.downloadAsText') },
-    { value: 'json', label: t('knowledgeGraph.formatJson') + ' (.json)', description: t('knowledgeGraph.downloadAsJson') },
-    { value: 'csv', label: t('knowledgeGraph.formatCsv') + ' (.csv)', description: t('knowledgeGraph.downloadAsCsv') },
-    { value: 'xlsx', label: t('knowledgeGraph.formatXlsx') + ' (.xlsx)', description: t('knowledgeGraph.downloadAsExcel') }
+    {
+      value: 'txt',
+      label: t('knowledgeGraph.formatTxt') + ' (.txt)',
+      description: t('knowledgeGraph.downloadAsText'),
+    },
+    {
+      value: 'json',
+      label: t('knowledgeGraph.formatJson') + ' (.json)',
+      description: t('knowledgeGraph.downloadAsJson'),
+    },
+    {
+      value: 'csv',
+      label: t('knowledgeGraph.formatCsv') + ' (.csv)',
+      description: t('knowledgeGraph.downloadAsCsv'),
+    },
+    {
+      value: 'xlsx',
+      label: t('knowledgeGraph.formatXlsx') + ' (.xlsx)',
+      description: t('knowledgeGraph.downloadAsExcel'),
+    },
   ];
 
   const handleDownload = useCallback(async () => {
@@ -67,64 +95,63 @@ const DownloadManager: React.FC<DownloadManagerProps> = ({
       format: selectedFormat,
       includeMetadata,
       status: 'pending',
-      progress: 0
+      progress: 0,
     };
 
-    setDownloadTasks(prev => [...prev, newTask]);
+    setDownloadTasks((prev) => [...prev, newTask]);
 
     try {
       // Update task status to downloading
-      setDownloadTasks(prev => 
-        prev.map(task => 
-          task.id === taskId 
+      setDownloadTasks((prev) =>
+        prev.map((task) =>
+          task.id === taskId
             ? { ...task, status: 'downloading', progress: 10 }
-            : task
-        )
+            : task,
+        ),
       );
 
       // Simulate progress updates
       const progressInterval = setInterval(() => {
-        setDownloadTasks(prev => 
-          prev.map(task => 
+        setDownloadTasks((prev) =>
+          prev.map((task) =>
             task.id === taskId && task.status === 'downloading'
               ? { ...task, progress: Math.min(task.progress + 20, 90) }
-              : task
-          )
+              : task,
+          ),
         );
       }, 500);
 
       await downloadContent(nodeId, {
         type: 'chunks',
         format: selectedFormat,
-        include_metadata: includeMetadata
+        include_metadata: includeMetadata,
       });
 
       clearInterval(progressInterval);
 
       // Mark as completed
-      setDownloadTasks(prev => 
-        prev.map(task => 
-          task.id === taskId 
+      setDownloadTasks((prev) =>
+        prev.map((task) =>
+          task.id === taskId
             ? { ...task, status: 'completed', progress: 100 }
-            : task
-        )
+            : task,
+        ),
       );
 
       message.success(t('knowledgeGraph.downloadSuccess'));
-      
     } catch (error) {
       // Mark as failed
-      setDownloadTasks(prev => 
-        prev.map(task => 
-          task.id === taskId 
-            ? { 
-                ...task, 
-                status: 'failed', 
+      setDownloadTasks((prev) =>
+        prev.map((task) =>
+          task.id === taskId
+            ? {
+                ...task,
+                status: 'failed',
                 progress: 0,
-                error: error instanceof Error ? error.message : 'Unknown error'
+                error: error instanceof Error ? error.message : 'Unknown error',
               }
-            : task
-        )
+            : task,
+        ),
       );
 
       message.error(t('knowledgeGraph.downloadFailed'));
@@ -133,7 +160,7 @@ const DownloadManager: React.FC<DownloadManagerProps> = ({
 
   const handleBatchDownload = useCallback(async () => {
     const formats: Array<'txt' | 'json' | 'csv'> = ['txt', 'json', 'csv'];
-    
+
     for (const format of formats) {
       const taskId = `${nodeId}_${format}_batch_${Date.now()}`;
       const newTask: DownloadTask = {
@@ -142,49 +169,51 @@ const DownloadManager: React.FC<DownloadManagerProps> = ({
         format,
         includeMetadata,
         status: 'pending',
-        progress: 0
+        progress: 0,
       };
 
-      setDownloadTasks(prev => [...prev, newTask]);
+      setDownloadTasks((prev) => [...prev, newTask]);
 
       try {
-        setDownloadTasks(prev => 
-          prev.map(task => 
-            task.id === taskId 
+        setDownloadTasks((prev) =>
+          prev.map((task) =>
+            task.id === taskId
               ? { ...task, status: 'downloading', progress: 50 }
-              : task
-          )
+              : task,
+          ),
         );
 
         await downloadContent(nodeId, {
           type: 'chunks',
           format,
-          include_metadata: includeMetadata
+          include_metadata: includeMetadata,
         });
 
-        setDownloadTasks(prev => 
-          prev.map(task => 
-            task.id === taskId 
+        setDownloadTasks((prev) =>
+          prev.map((task) =>
+            task.id === taskId
               ? { ...task, status: 'completed', progress: 100 }
-              : task
-          )
+              : task,
+          ),
         );
 
         // Small delay between downloads
-        await new Promise(resolve => setTimeout(resolve, 1000));
-
+        await new Promise<void>((resolve) => {
+          setTimeout(resolve, 1000);
+        });
       } catch (error) {
-        setDownloadTasks(prev => 
-          prev.map(task => 
-            task.id === taskId 
-              ? { 
-                  ...task, 
-                  status: 'failed', 
+        setDownloadTasks((prev) =>
+          prev.map((task) =>
+            task.id === taskId
+              ? {
+                  ...task,
+                  status: 'failed',
                   progress: 0,
-                  error: error instanceof Error ? error.message : 'Unknown error'
+                  error:
+                    error instanceof Error ? error.message : 'Unknown error',
                 }
-              : task
-          )
+              : task,
+          ),
         );
       }
     }
@@ -193,7 +222,9 @@ const DownloadManager: React.FC<DownloadManagerProps> = ({
   }, [nodeId, includeMetadata, downloadContent, t]);
 
   const clearCompletedTasks = useCallback(() => {
-    setDownloadTasks(prev => prev.filter(task => task.status !== 'completed'));
+    setDownloadTasks((prev) =>
+      prev.filter((task) => task.status !== 'completed'),
+    );
   }, []);
 
   const getStatusIcon = (status: DownloadTask['status']) => {
@@ -230,7 +261,7 @@ const DownloadManager: React.FC<DownloadManagerProps> = ({
           {t('knowledgeGraph.advancedDownload')}
         </Button>
       </DialogTrigger>
-      
+
       <DialogContent className="max-w-2xl max-h-[80vh]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -254,7 +285,10 @@ const DownloadManager: React.FC<DownloadManagerProps> = ({
                 <label className="text-sm font-medium mb-2 block">
                   {t('knowledgeGraph.outputFormat')}
                 </label>
-                <Select value={selectedFormat} onValueChange={(value: any) => setSelectedFormat(value)}>
+                <Select
+                  value={selectedFormat}
+                  onValueChange={(value: any) => setSelectedFormat(value)}
+                >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -263,7 +297,9 @@ const DownloadManager: React.FC<DownloadManagerProps> = ({
                       <SelectItem key={option.value} value={option.value}>
                         <div>
                           <div className="font-medium">{option.label}</div>
-                          <div className="text-xs text-gray-600">{option.description}</div>
+                          <div className="text-xs text-gray-600">
+                            {option.description}
+                          </div>
                         </div>
                       </SelectItem>
                     ))}
@@ -281,7 +317,9 @@ const DownloadManager: React.FC<DownloadManagerProps> = ({
                     <Checkbox
                       id="includeMetadata"
                       checked={includeMetadata}
-                      onCheckedChange={(checked) => setIncludeMetadata(checked as boolean)}
+                      onCheckedChange={(checked) =>
+                        setIncludeMetadata(checked as boolean)
+                      }
                     />
                     <label htmlFor="includeMetadata" className="text-sm">
                       {t('knowledgeGraph.includeMetadata')}
@@ -291,7 +329,9 @@ const DownloadManager: React.FC<DownloadManagerProps> = ({
                     <Checkbox
                       id="includeFiles"
                       checked={includeFiles}
-                      onCheckedChange={(checked) => setIncludeFiles(checked as boolean)}
+                      onCheckedChange={(checked) =>
+                        setIncludeFiles(checked as boolean)
+                      }
                     />
                     <label htmlFor="includeFiles" className="text-sm">
                       {t('knowledgeGraph.includeFileInfo')}
@@ -301,7 +341,9 @@ const DownloadManager: React.FC<DownloadManagerProps> = ({
                     <Checkbox
                       id="includeChunks"
                       checked={includeChunks}
-                      onCheckedChange={(checked) => setIncludeChunks(checked as boolean)}
+                      onCheckedChange={(checked) =>
+                        setIncludeChunks(checked as boolean)
+                      }
                     />
                     <label htmlFor="includeChunks" className="text-sm">
                       {t('knowledgeGraph.includeTextChunks')}
@@ -312,16 +354,16 @@ const DownloadManager: React.FC<DownloadManagerProps> = ({
 
               {/* Action Buttons */}
               <div className="flex gap-2 pt-4">
-                <Button 
-                  onClick={handleDownload} 
+                <Button
+                  onClick={handleDownload}
                   disabled={loading}
                   className="flex-1"
                 >
                   <Download className="w-4 h-4 mr-2" />
                   {t('knowledgeGraph.downloadSingle')}
                 </Button>
-                <Button 
-                  onClick={handleBatchDownload} 
+                <Button
+                  onClick={handleBatchDownload}
                   disabled={loading}
                   variant="outline"
                   className="flex-1"
@@ -354,22 +396,32 @@ const DownloadManager: React.FC<DownloadManagerProps> = ({
               <CardContent>
                 <div className="space-y-3 max-h-48 overflow-y-auto">
                   {downloadTasks.slice(-5).map((task) => (
-                    <div key={task.id} className="flex items-center gap-3 p-2 border rounded">
+                    <div
+                      key={task.id}
+                      className="flex items-center gap-3 p-2 border rounded"
+                    >
                       {getStatusIcon(task.status)}
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
                           <span className="text-sm font-medium">
                             {task.format.toUpperCase()}
                           </span>
-                          <Badge className={`text-xs ${getStatusColor(task.status)}`}>
+                          <Badge
+                            className={`text-xs ${getStatusColor(task.status)}`}
+                          >
                             {task.status}
                           </Badge>
                         </div>
                         {task.status === 'downloading' && (
-                          <Progress value={task.progress} className="mt-1 h-1" />
+                          <Progress
+                            value={task.progress}
+                            className="mt-1 h-1"
+                          />
                         )}
                         {task.error && (
-                          <p className="text-xs text-red-600 mt-1">{task.error}</p>
+                          <p className="text-xs text-red-600 mt-1">
+                            {task.error}
+                          </p>
                         )}
                       </div>
                     </div>
@@ -384,11 +436,15 @@ const DownloadManager: React.FC<DownloadManagerProps> = ({
             <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <span className="font-medium">{t('knowledgeGraph.totalFiles')}: </span>
+                  <span className="font-medium">
+                    {t('knowledgeGraph.totalFiles')}:{' '}
+                  </span>
                   <span>{associatedFiles.total_files}</span>
                 </div>
                 <div>
-                  <span className="font-medium">{t('knowledgeGraph.totalChunks')}: </span>
+                  <span className="font-medium">
+                    {t('knowledgeGraph.totalChunks')}:{' '}
+                  </span>
                   <span>{associatedFiles.total_chunks}</span>
                 </div>
               </div>

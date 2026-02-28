@@ -1,5 +1,33 @@
 .forceContainer {
+  background: radial-gradient(
+    ellipse at center,
+    #1a1a2e 0%,
+    #0d0d1a 50%,
+    #000 100%
+  );
+
   :global(.tooltip) {
     border-radius: 10px !important;
+    background: rgba(20, 20, 40, 0.95) !important;
+    border: 1px solid rgba(100, 150, 255, 0.3) !important;
+    color: #fff !important;
+  }
+}
+
+.zoomIndicator {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  background: rgba(20, 20, 40, 0.8);
+  border: 1px solid rgba(100, 150, 255, 0.3);
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 12px;
+  z-index: 10;
+
+  .zoomLevel {
+    font-weight: 600;
+    color: #4dabf7;
   }
 }

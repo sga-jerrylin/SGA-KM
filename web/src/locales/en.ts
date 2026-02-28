@@ -699,6 +699,11 @@ This auto-tagging feature enhances retrieval by adding another layer of domain-s
       chatSetting: 'Chat setting',
       tocEnhance: 'TOC enhance',
       tocEnhanceTip: ` During the parsing of the document, table of contents information was generated (see the 'Enable Table of Contents Extraction' option in the General method). This allows the large model to return table of contents items relevant to the user's query, thereby using these items to retrieve related chunks and apply weighting to these chunks during the sorting process. This approach is derived from mimicking the behavioral logic of how humans search for knowledge in books.`,
+      permissions: 'Permissions',
+      permissionsTip:
+        'Control who can access this chat assistant. "Me" means only you can use it. "Team" means all team members can access it.',
+      me: 'Me',
+      team: 'Team',
     },
     setting: {
       deleteModel: 'Delete model',

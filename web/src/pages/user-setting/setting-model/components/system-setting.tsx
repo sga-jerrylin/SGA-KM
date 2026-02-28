@@ -18,13 +18,12 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useFetchSystemModelSettingOnMount } from '../hooks';
 
 interface IProps {
-  loading: boolean;
   onOk: (
     payload: Omit<ISystemModelSettingSavingParams, 'tenant_id' | 'name'>,
   ) => void;
 }
 
-const SystemSetting = ({ onOk, loading }: IProps) => {
+const SystemSetting = ({ onOk }: IProps) => {
   const { systemSetting: initialValues, allOptions } =
     useFetchSystemModelSettingOnMount();
   const { t } = useTranslate('setting');

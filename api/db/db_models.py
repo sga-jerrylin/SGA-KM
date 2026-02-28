@@ -876,6 +876,7 @@ class Dialog(DataBaseModel):
     rerank_id = CharField(max_length=128, null=False, help_text="default rerank model ID")
 
     kb_ids = JSONField(null=False, default=[])
+    permission = CharField(max_length=16, null=False, help_text="me|team", default="me", index=True)
     status = CharField(max_length=1, null=True, help_text="is it validate(0: wasted, 1: validate)", default="1", index=True)
 
     class Meta:
@@ -1299,6 +1300,10 @@ def migrate_db():
         pass
     try:
         migrate(migrator.add_column("llm_factories", "rank", IntegerField(default=0, index=False)))
+    except Exception:
+        pass
+    try:
+        migrate(migrator.add_column("dialog", "permission", CharField(max_length=16, null=False, help_text="me|team", default="me", index=True)))
     except Exception:
         pass
     logging.disable(logging.NOTSET)

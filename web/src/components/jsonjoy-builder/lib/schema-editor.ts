@@ -45,7 +45,8 @@ export function removeObjectProperty(
   if (!isObjectSchema(schema) || !schema.properties) return schema;
 
   const newSchema = copySchema(schema);
-  const { [propertyName]: _, ...remainingProps } = newSchema.properties;
+  const remainingProps = { ...newSchema.properties };
+  delete remainingProps[propertyName];
   newSchema.properties = remainingProps;
 
   // Also remove from required array if present

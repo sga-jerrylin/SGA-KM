@@ -19,7 +19,6 @@ interface IProps extends Omit<IModalManagerChildrenProps, 'showModal'> {
   loading: boolean;
   initialValue: string;
   llmFactory: string;
-  editMode?: boolean;
   onOk: (postBody: ApiKeyPostBody) => void;
   showModal?(): void;
 }
@@ -42,7 +41,6 @@ const ApiKeyModal = ({
   llmFactory,
   loading,
   initialValue,
-  editMode = false,
   onOk,
 }: IProps) => {
   const form = useForm<FieldType>();

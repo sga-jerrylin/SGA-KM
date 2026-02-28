@@ -61,6 +61,7 @@ export interface IDialog {
   top_k: number;
   top_n: number;
   meta_data_filter: MetaDataFilter;
+  permission?: string;
 }
 
 interface MetaDataFilter {

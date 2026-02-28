@@ -37,7 +37,7 @@ export const PopoverForm = ({
     defaultValues: values,
     resolver: zodResolver(FormSchema),
   });
-  const { parseDocument, loading } = useParseDocument();
+  const { parseDocument } = useParseDocument();
   const { t } = useTranslation();
 
   // useResetFormOnCloseModal({

@@ -22,7 +22,6 @@ import { IModalProps } from '@/interfaces/common';
 import React, { useCallback, useEffect, useState } from 'react';
 import { FieldValues, FormProvider, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
-import { useDeleteChunkByIds } from '../../hooks';
 import {
   transformTagFeaturesArrayToObject,
   transformTagFeaturesObjectToArray,
@@ -30,13 +29,11 @@ import {
 import { TagFeatureItem } from './tag-feature-item';
 
 interface kFProps {
-  doc_id: string;
   chunkId: string | undefined;
   parserId: string;
 }
 
 const ChunkCreatingModal: React.FC<IModalProps<any> & kFProps> = ({
-  doc_id,
   chunkId,
   hideModal,
   onOk,
@@ -55,7 +52,6 @@ const ChunkCreatingModal: React.FC<IModalProps<any> & kFProps> = ({
     },
   });
   const [checked, setChecked] = useState(false);
-  const { removeChunk } = useDeleteChunkByIds();
   const { data } = useFetchChunk(chunkId);
   const { t } = useTranslation();
 
@@ -72,12 +68,6 @@ const ChunkCreatingModal: React.FC<IModalProps<any> & kFProps> = ({
   );
 
   const handleOk = form.handleSubmit(onSubmit);
-
-  const handleRemove = useCallback(() => {
-    if (chunkId) {
-      return removeChunk([chunkId], doc_id);
-    }
-  }, [chunkId, doc_id, removeChunk]);
 
   const handleCheck = useCallback(() => {
     setChecked(!checked);

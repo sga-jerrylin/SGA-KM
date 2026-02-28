@@ -1,24 +1,28 @@
-import React, { useState, useMemo } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { message } from 'antd';
 import {
-  FileText,
-  Download,
-  Search,
-  Eye,
-  Copy,
-  Filter,
   ChevronDown,
   ChevronUp,
-  ExternalLink
+  Copy,
+  Download,
+  Eye,
+  FileText,
+  Search,
 } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { message } from 'antd';
 import DownloadManager from './download-manager';
 
 interface AssociatedFilesViewerProps {
@@ -36,26 +40,27 @@ const AssociatedFilesViewer: React.FC<AssociatedFilesViewerProps> = ({
   associatedFiles,
   loading,
   onDownload,
-  downloadLoading
+  downloadLoading,
 }) => {
   const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFileType, setSelectedFileType] = useState<string>('all');
   const [expandedChunks, setExpandedChunks] = useState<Set<string>>(new Set());
-  const [selectedChunk, setSelectedChunk] = useState<any>(null);
 
   // Filter files based on search term and type
   const filteredFiles = useMemo(() => {
     if (!associatedFiles?.files) return [];
-    
+
     return associatedFiles.files.filter((file: any) => {
-      const matchesSearch = !searchTerm || 
+      const matchesSearch =
+        !searchTerm ||
         file.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         file.type.toLowerCase().includes(searchTerm.toLowerCase());
-      
-      const matchesType = selectedFileType === 'all' || 
+
+      const matchesType =
+        selectedFileType === 'all' ||
         file.type.toLowerCase() === selectedFileType.toLowerCase();
-      
+
       return matchesSearch && matchesType;
     });
   }, [associatedFiles?.files, searchTerm, selectedFileType]);
@@ -63,18 +68,20 @@ const AssociatedFilesViewer: React.FC<AssociatedFilesViewerProps> = ({
   // Filter chunks based on search term
   const filteredChunks = useMemo(() => {
     if (!associatedFiles?.chunks) return [];
-    
+
     return associatedFiles.chunks.filter((chunk: any) => {
-      return !searchTerm || 
+      return (
+        !searchTerm ||
         chunk.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        chunk.docnm_kwd.toLowerCase().includes(searchTerm.toLowerCase());
+        chunk.docnm_kwd.toLowerCase().includes(searchTerm.toLowerCase())
+      );
     });
   }, [associatedFiles?.chunks, searchTerm]);
 
   // Get unique file types
   const fileTypes = useMemo(() => {
     if (!associatedFiles?.files) return [];
-    
+
     const types = new Set(associatedFiles.files.map((file: any) => file.type));
     return Array.from(types);
   }, [associatedFiles?.files]);
@@ -133,7 +140,9 @@ const AssociatedFilesViewer: React.FC<AssociatedFilesViewerProps> = ({
       <Card>
         <CardContent className="text-center py-8">
           <FileText className="w-12 h-12 text-gray-400 mx-auto mb-2" />
-          <p className="text-gray-600">{t('knowledgeGraph.noAssociatedFiles')}</p>
+          <p className="text-gray-600">
+            {t('knowledgeGraph.noAssociatedFiles')}
+          </p>
         </CardContent>
       </Card>
     );
@@ -145,7 +154,9 @@ const AssociatedFilesViewer: React.FC<AssociatedFilesViewerProps> = ({
         <CardTitle className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <FileText className="w-5 h-5" />
-            <span>{t('knowledgeGraph.associatedFiles')} - {nodeId}</span>
+            <span>
+              {t('knowledgeGraph.associatedFiles')} - {nodeId}
+            </span>
           </div>
           <div className="flex gap-2">
             <Button
@@ -180,46 +191,57 @@ const AssociatedFilesViewer: React.FC<AssociatedFilesViewerProps> = ({
             </Button>
             <DownloadManager
               nodeId={nodeId}
-              nodeInfo={nodeInfo}
               associatedFiles={associatedFiles}
             />
           </div>
         </CardTitle>
       </CardHeader>
-      
+
       <CardContent>
         {/* Node Information */}
         {nodeInfo && (
           <div className="mb-4 p-3 bg-gray-50 rounded-lg">
-            <h4 className="font-medium text-sm mb-2">{t('knowledgeGraph.nodeInfo')}</h4>
+            <h4 className="font-medium text-sm mb-2">
+              {t('knowledgeGraph.nodeInfo')}
+            </h4>
             <div className="grid grid-cols-2 gap-2 text-xs">
               <div>
                 <span className="font-medium">{t('common.name')}: </span>
                 <span>{nodeInfo.id}</span>
               </div>
               <div>
-                <span className="font-medium">{t('knowledgeGraph.entityType')}: </span>
+                <span className="font-medium">
+                  {t('knowledgeGraph.entityType')}:{' '}
+                </span>
                 <Badge variant="outline" className="text-xs">
                   {nodeInfo.entity_type}
                 </Badge>
               </div>
               {nodeInfo.pagerank && (
                 <div>
-                  <span className="font-medium">{t('knowledgeGraph.relevance')}: </span>
+                  <span className="font-medium">
+                    {t('knowledgeGraph.relevance')}:{' '}
+                  </span>
                   <span>{(nodeInfo.pagerank * 100).toFixed(1)}%</span>
                 </div>
               )}
               {nodeInfo.communities && nodeInfo.communities.length > 0 && (
                 <div>
-                  <span className="font-medium">{t('knowledgeGraph.communities')}: </span>
+                  <span className="font-medium">
+                    {t('knowledgeGraph.communities')}:{' '}
+                  </span>
                   <span>{nodeInfo.communities.join(', ')}</span>
                 </div>
               )}
             </div>
             {nodeInfo.description && (
               <div className="mt-2">
-                <span className="font-medium text-xs">{t('common.description')}: </span>
-                <p className="text-xs text-gray-600 mt-1">{nodeInfo.description}</p>
+                <span className="font-medium text-xs">
+                  {t('common.description')}:{' '}
+                </span>
+                <p className="text-xs text-gray-600 mt-1">
+                  {nodeInfo.description}
+                </p>
               </div>
             )}
           </div>
@@ -270,7 +292,10 @@ const AssociatedFilesViewer: React.FC<AssociatedFilesViewerProps> = ({
             <ScrollArea className="h-64">
               <div className="space-y-2">
                 {filteredFiles.map((file: any) => (
-                  <div key={file.id} className="p-3 border rounded-lg hover:bg-gray-50">
+                  <div
+                    key={file.id}
+                    className="p-3 border rounded-lg hover:bg-gray-50"
+                  >
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <h5 className="font-medium text-sm">{file.name}</h5>
@@ -306,7 +331,9 @@ const AssociatedFilesViewer: React.FC<AssociatedFilesViewerProps> = ({
                 {filteredFiles.length === 0 && (
                   <div className="text-center py-8 text-gray-500">
                     <FileText className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                    <p className="text-sm">{t('knowledgeGraph.noFilesFound')}</p>
+                    <p className="text-sm">
+                      {t('knowledgeGraph.noFilesFound')}
+                    </p>
                   </div>
                 )}
               </div>
@@ -321,28 +348,28 @@ const AssociatedFilesViewer: React.FC<AssociatedFilesViewerProps> = ({
                   <div key={chunk.id} className="p-3 border rounded-lg">
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex-1">
-                        <h5 className="font-medium text-sm">{chunk.docnm_kwd}</h5>
+                        <h5 className="font-medium text-sm">
+                          {chunk.docnm_kwd}
+                        </h5>
                         <div className="flex items-center gap-2 mt-1">
-                          {chunk.page_num_int && chunk.page_num_int.length > 0 && (
-                            <Badge variant="outline" className="text-xs">
-                              Pages: {chunk.page_num_int.join(', ')}
-                            </Badge>
-                          )}
-                          {chunk.important_kwd && chunk.important_kwd.length > 0 && (
-                            <Badge variant="secondary" className="text-xs">
-                              {chunk.important_kwd.length} keywords
-                            </Badge>
-                          )}
+                          {chunk.page_num_int &&
+                            chunk.page_num_int.length > 0 && (
+                              <Badge variant="outline" className="text-xs">
+                                Pages: {chunk.page_num_int.join(', ')}
+                              </Badge>
+                            )}
+                          {chunk.important_kwd &&
+                            chunk.important_kwd.length > 0 && (
+                              <Badge variant="secondary" className="text-xs">
+                                {chunk.important_kwd.length} keywords
+                              </Badge>
+                            )}
                         </div>
                       </div>
                       <div className="flex gap-1">
                         <Dialog>
                           <DialogTrigger asChild>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => setSelectedChunk(chunk)}
-                            >
+                            <Button size="sm" variant="ghost">
                               <Eye className="w-3 h-3" />
                             </Button>
                           </DialogTrigger>
@@ -355,18 +382,27 @@ const AssociatedFilesViewer: React.FC<AssociatedFilesViewerProps> = ({
                                 <div className="text-sm whitespace-pre-wrap">
                                   {chunk.content}
                                 </div>
-                                {chunk.important_kwd && chunk.important_kwd.length > 0 && (
-                                  <div>
-                                    <h6 className="font-medium text-sm mb-2">Keywords:</h6>
-                                    <div className="flex flex-wrap gap-1">
-                                      {chunk.important_kwd.map((keyword: string, index: number) => (
-                                        <Badge key={index} variant="outline" className="text-xs">
-                                          {keyword}
-                                        </Badge>
-                                      ))}
+                                {chunk.important_kwd &&
+                                  chunk.important_kwd.length > 0 && (
+                                    <div>
+                                      <h6 className="font-medium text-sm mb-2">
+                                        Keywords:
+                                      </h6>
+                                      <div className="flex flex-wrap gap-1">
+                                        {chunk.important_kwd.map(
+                                          (keyword: string, index: number) => (
+                                            <Badge
+                                              key={index}
+                                              variant="outline"
+                                              className="text-xs"
+                                            >
+                                              {keyword}
+                                            </Badge>
+                                          ),
+                                        )}
+                                      </div>
                                     </div>
-                                  </div>
-                                )}
+                                  )}
                               </div>
                             </ScrollArea>
                           </DialogContent>
@@ -391,10 +427,12 @@ const AssociatedFilesViewer: React.FC<AssociatedFilesViewerProps> = ({
                         </Button>
                       </div>
                     </div>
-                    
-                    <div className={`text-xs text-gray-600 ${
-                      expandedChunks.has(chunk.id) ? '' : 'line-clamp-2'
-                    }`}>
+
+                    <div
+                      className={`text-xs text-gray-600 ${
+                        expandedChunks.has(chunk.id) ? '' : 'line-clamp-2'
+                      }`}
+                    >
                       {chunk.content}
                     </div>
                   </div>
@@ -402,7 +440,9 @@ const AssociatedFilesViewer: React.FC<AssociatedFilesViewerProps> = ({
                 {filteredChunks.length === 0 && (
                   <div className="text-center py-8 text-gray-500">
                     <FileText className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                    <p className="text-sm">{t('knowledgeGraph.noChunksFound')}</p>
+                    <p className="text-sm">
+                      {t('knowledgeGraph.noChunksFound')}
+                    </p>
                   </div>
                 )}
               </div>
@@ -414,12 +454,20 @@ const AssociatedFilesViewer: React.FC<AssociatedFilesViewerProps> = ({
         <div className="mt-4 pt-4 border-t">
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div className="text-center">
-              <div className="font-medium text-lg">{associatedFiles.total_files}</div>
-              <div className="text-gray-600">{t('knowledgeGraph.totalFiles')}</div>
+              <div className="font-medium text-lg">
+                {associatedFiles.total_files}
+              </div>
+              <div className="text-gray-600">
+                {t('knowledgeGraph.totalFiles')}
+              </div>
             </div>
             <div className="text-center">
-              <div className="font-medium text-lg">{associatedFiles.total_chunks}</div>
-              <div className="text-gray-600">{t('knowledgeGraph.totalChunks')}</div>
+              <div className="font-medium text-lg">
+                {associatedFiles.total_chunks}
+              </div>
+              <div className="text-gray-600">
+                {t('knowledgeGraph.totalChunks')}
+              </div>
             </div>
           </div>
         </div>

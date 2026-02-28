@@ -59,6 +59,7 @@ export function ChatSettings({ switchSettingVisible }: ChatSettingsProps) {
         method: DatasetMetadata.Disabled,
         manual: [],
       },
+      permission: 'me',
     },
   });
 

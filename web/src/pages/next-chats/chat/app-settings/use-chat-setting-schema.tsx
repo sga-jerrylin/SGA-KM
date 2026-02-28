@@ -52,6 +52,7 @@ export function useChatSettingSchema() {
     ...similarityThresholdSchema,
     ...topnSchema,
     ...MetadataFilterSchema,
+    permission: z.string().optional(),
   });
 
   return formSchema;

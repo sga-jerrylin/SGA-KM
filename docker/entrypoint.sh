@@ -164,6 +164,25 @@ export LD_LIBRARY_PATH="/usr/lib/x86_64-linux-gnu/"
 PY=python3
 
 # -----------------------------------------------------------------------------
+# Initialize venv if mounted volume is empty (for persistence)
+# -----------------------------------------------------------------------------
+VENV_DIR="/ragflow/.venv"
+VENV_BACKUP="/ragflow/.venv_backup"
+
+# Check if venv directory is empty (mounted empty volume)
+if [[ -d "$VENV_DIR" && ! -f "$VENV_DIR/bin/python3" ]]; then
+    echo "[venv] Mounted volume is empty, initializing from backup..."
+    if [[ -d "$VENV_BACKUP" && -f "$VENV_BACKUP/bin/python3" ]]; then
+        cp -a "$VENV_BACKUP/." "$VENV_DIR/"
+        echo "[venv] Initialized from backup successfully"
+    else
+        echo "[venv] WARNING: No backup found, venv may need to be rebuilt"
+    fi
+elif [[ -f "$VENV_DIR/bin/python3" ]]; then
+    echo "[venv] Using existing venv from persistent volume"
+fi
+
+# -----------------------------------------------------------------------------
 # Function(s)
 # -----------------------------------------------------------------------------
 

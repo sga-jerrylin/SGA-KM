@@ -42,10 +42,14 @@ services:
       - ../history_data_agent:/ragflow/history_data_agent
       - ./service_conf.yaml.template:/ragflow/conf/service_conf.yaml.template
       - ./entrypoint.sh:/ragflow/entrypoint.sh
+      - ../rag/res:/ragflow/rag/res
+      - uv_tools_data:/ragflow/uv_tools
+      - venv_data:/ragflow/.venv
     env_file: .env
     networks:
       - ragflow
     restart: on-failure
+    shm_size: '4gb'
     # https://docs.docker.com/engine/daemon/prometheus/#create-a-prometheus-configuration
     # If you use Docker Desktop, the --add-host flag is optional. This flag ensures that the host's internal IP is exposed to the Prometheus container.
     extra_hosts:
@@ -91,10 +95,14 @@ services:
       - ../history_data_agent:/ragflow/history_data_agent
       - ./service_conf.yaml.template:/ragflow/conf/service_conf.yaml.template
       - ./entrypoint.sh:/ragflow/entrypoint.sh
+      - ../rag/res:/ragflow/rag/res
+      - uv_tools_data:/ragflow/uv_tools
+      - venv_data:/ragflow/.venv
     env_file: .env
     networks:
       - ragflow
     restart: on-failure
+    shm_size: '4gb'
     # https://docs.docker.com/engine/daemon/prometheus/#create-a-prometheus-configuration
     # If you use Docker Desktop, the --add-host flag is optional. This flag ensures that the host's internal IP is exposed to the Prometheus container.
     extra_hosts:

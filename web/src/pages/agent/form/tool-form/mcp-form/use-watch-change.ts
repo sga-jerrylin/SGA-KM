@@ -6,16 +6,16 @@ import { useEffect, useMemo } from 'react';
 import { UseFormReturn, useWatch } from 'react-hook-form';
 
 export function useWatchFormChange(form?: UseFormReturn<any>) {
-  let values = useWatch({ control: form?.control });
+  const values = useWatch({ control: form?.control });
   const { clickedToolId, clickedNodeId, findUpstreamNodeById, updateNodeForm } =
     useGraphStore((state) => state);
   const { data } = useGetMcpServer(clickedToolId);
 
   const nextMCPTools = useMemo(() => {
     const mcpTools = data.variables?.tools || [];
-    values = form?.getValues();
+    const currentValues = form?.getValues() ?? values;
 
-    return pick(mcpTools, values.items);
+    return pick(mcpTools, currentValues.items);
   }, [values, data?.variables]);
 
   useEffect(() => {

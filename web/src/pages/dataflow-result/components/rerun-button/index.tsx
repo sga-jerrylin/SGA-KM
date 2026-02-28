@@ -5,13 +5,12 @@ import { Modal } from '@/components/ui/modal/modal';
 import { CircleAlert } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 interface RerunButtonProps {
-  className?: string;
   step?: TimelineNode;
   onRerun?: () => void;
   loading?: boolean;
 }
 const RerunButton = (props: RerunButtonProps) => {
-  const { className, step, onRerun, loading } = props;
+  const { step, onRerun, loading } = props;
   const { t } = useTranslation();
   const clickFunc = () => {
     console.log('click rerun button');

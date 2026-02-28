@@ -4,7 +4,7 @@ import useGraphStore from '../../store';
 import { getAgentNodeTools } from '../../utils';
 
 export function useWatchFormChange(form?: UseFormReturn<any>) {
-  let values = useWatch({ control: form?.control });
+  const values = useWatch({ control: form?.control });
   const { clickedToolId, clickedNodeId, findUpstreamNodeById, updateNodeForm } =
     useGraphStore((state) => state);
 
@@ -15,13 +15,13 @@ export function useWatchFormChange(form?: UseFormReturn<any>) {
       const agentNodeId = agentNode?.id;
       const tools = getAgentNodeTools(agentNode);
 
-      values = form?.getValues();
+      const currentValues = form?.getValues() ?? values;
       const nextTools = tools.map((x) => {
         if (x.component_name === clickedToolId) {
           return {
             ...x,
             params: {
-              ...values,
+              ...currentValues,
             },
           };
         }
@@ -35,5 +35,12 @@ export function useWatchFormChange(form?: UseFormReturn<any>) {
 
       updateNodeForm(agentNodeId, nextValues);
     }
-  }, [form?.formState.isDirty, updateNodeForm, values]);
+  }, [
+    clickedNodeId,
+    clickedToolId,
+    findUpstreamNodeById,
+    form?.formState.isDirty,
+    updateNodeForm,
+    values,
+  ]);
 }

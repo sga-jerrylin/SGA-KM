@@ -289,4 +289,24 @@ export default {
 
   adminGetSystemSettings: `${ExternalApi}${api_host}/admin/settings`,
   adminUpdateSystemSettings: `${ExternalApi}${api_host}/admin/settings`,
+
+  // News Sync
+  syncGetConfig: `${api_host}/sync/config`,
+  syncUpdateConfig: `${api_host}/sync/config`,
+  syncTrigger: `${api_host}/sync/trigger`,
+  syncTriggerGraph: `${api_host}/sync/trigger_graph`,
+  syncGetStatus: `${api_host}/sync/status`,
+  syncTestKb: `${api_host}/sync/test_kb`,
+  syncTestConnection: `${api_host}/sync/test_connection`,
+  syncValidateKb: `${api_host}/sync/validate_kb`,
+
+  // Archive Sync
+  archiveSyncGetConfig: `${api_host}/sync/archive/config`,
+  archiveSyncUpdateConfig: `${api_host}/sync/archive/config`,
+  archiveSyncGetCategories: `${api_host}/sync/archive/categories`,
+  archiveSyncRefreshCategories: `${api_host}/sync/archive/categories/refresh`,
+  archiveSyncTrigger: `${api_host}/sync/archive/trigger`,
+  archiveSyncTriggerGraph: `${api_host}/sync/archive/trigger_graph`,
+  archiveSyncTestConnection: `${api_host}/sync/archive/test_connection`,
+  archiveSyncValidateKb: `${api_host}/sync/archive/validate_kb`,
 };

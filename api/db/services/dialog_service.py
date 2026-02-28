@@ -26,6 +26,7 @@ from langfuse import Langfuse
 from peewee import fn
 from agentic_reasoning import DeepResearcher
 from common.constants import LLMType, ParserType, StatusEnum
+from api.db import TenantPermission
 from api.db.db_models import DB, Dialog
 from api.db.services.common_service import CommonService
 from api.db.services.document_service import DocumentService
@@ -137,6 +138,7 @@ class DialogService(CommonService):
             cls.model.rerank_id,
             cls.model.kb_ids,
             cls.model.icon,
+            cls.model.permission,
             cls.model.status,
             User.nickname,
             User.avatar.alias("tenant_avatar"),
@@ -162,20 +164,22 @@ class DialogService(CommonService):
                     .where(cls.model.status == StatusEnum.VALID.value)
                 )
         elif keywords:
+            # Team dialogs (permission=team and tenant in joined_tenant_ids) or own dialogs
             dialogs = (
                 cls.model.select(*fields)
                 .join(User, on=(cls.model.tenant_id == User.id))
                 .where(
-                    (cls.model.tenant_id.in_(joined_tenant_ids) | (cls.model.tenant_id == user_id)) & (cls.model.status == StatusEnum.VALID.value),
+                    ((cls.model.tenant_id.in_(joined_tenant_ids) & (cls.model.permission == TenantPermission.TEAM.value)) | (cls.model.tenant_id == user_id)) & (cls.model.status == StatusEnum.VALID.value),
                     (fn.LOWER(cls.model.name).contains(keywords.lower())),
                 )
             )
         else:
+            # Team dialogs (permission=team and tenant in joined_tenant_ids) or own dialogs
             dialogs = (
                 cls.model.select(*fields)
                 .join(User, on=(cls.model.tenant_id == User.id))
                 .where(
-                    (cls.model.tenant_id.in_(joined_tenant_ids) | (cls.model.tenant_id == user_id)) & (cls.model.status == StatusEnum.VALID.value),
+                    ((cls.model.tenant_id.in_(joined_tenant_ids) & (cls.model.permission == TenantPermission.TEAM.value)) | (cls.model.tenant_id == user_id)) & (cls.model.status == StatusEnum.VALID.value),
                 )
             )
         if parser_id:

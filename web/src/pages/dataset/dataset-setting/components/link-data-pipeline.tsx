@@ -2,7 +2,6 @@ import { IDataPipelineSelectNode } from '@/components/data-pipeline-select';
 import { IconFont } from '@/components/icon-font';
 import { RAGFlowAvatar } from '@/components/ragflow-avatar';
 import { Button } from '@/components/ui/button';
-import { Modal } from '@/components/ui/modal/modal';
 import { Link } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -17,47 +16,10 @@ export interface ILinkDataPipelineProps {
   handleLinkOrEditSubmit?: (data: IDataPipelineNodeProps | undefined) => void;
 }
 
-interface DataPipelineItemProps extends IDataPipelineNodeProps {
-  openLinkModalFunc?: (open: boolean, data?: IDataPipelineNodeProps) => void;
-}
+type DataPipelineItemProps = IDataPipelineNodeProps;
 
 const DataPipelineItem = (props: DataPipelineItemProps) => {
-  const { t } = useTranslation();
-  const { name, avatar, isDefault, linked, openLinkModalFunc } = props;
-  const openUnlinkModal = () => {
-    Modal.show({
-      visible: true,
-      className: '!w-[560px]',
-      title: t('dataflowParser.unlinkPipelineModalTitle'),
-      children: (
-        <div
-          className="text-sm text-text-secondary"
-          dangerouslySetInnerHTML={{
-            __html: t('dataflowParser.unlinkPipelineModalContent'),
-          }}
-        ></div>
-      ),
-      onVisibleChange: () => {
-        Modal.hide();
-      },
-      footer: (
-        <div className="flex justify-end gap-2">
-          <Button variant={'outline'} onClick={() => Modal.hide()}>
-            {t('dataflowParser.changeStepModalCancelText')}
-          </Button>
-          <Button
-            variant={'secondary'}
-            className="!bg-state-error text-bg-base"
-            onClick={() => {
-              Modal.hide();
-            }}
-          >
-            {t('dataflowParser.unlinkPipelineModalConfirmText')}
-          </Button>
-        </div>
-      ),
-    });
-  };
+  const { name, avatar } = props;
 
   return (
     <div className="flex items-center justify-between gap-1 px-2 rounded-md border">
@@ -167,7 +129,6 @@ const LinkDataPipeline = (props: ILinkDataPipelineProps) => {
             item.id && (
               <DataPipelineItem
                 key={item.id}
-                openLinkModalFunc={openLinkModalFunc}
                 id={item.id}
                 name={item.name}
                 avatar={item.avatar}

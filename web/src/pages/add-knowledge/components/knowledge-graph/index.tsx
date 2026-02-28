@@ -1,17 +1,19 @@
 import { ConfirmDeleteDialog } from '@/components/confirm-delete-dialog';
 import { Button } from '@/components/ui/button';
+import {
+  useDownloadNodeContent,
+  useKnowledgeGraphInteraction,
+} from '@/hooks/knowledge-graph-hooks';
 import { useFetchKnowledgeGraph } from '@/hooks/knowledge-hooks';
-import { useKnowledgeGraphInteraction, useDownloadNodeContent } from '@/hooks/knowledge-graph-hooks';
-import { Trash2, Search, Info } from 'lucide-react';
-import React, { useState, useCallback, useMemo } from 'react';
+import { Info, Search, Trash2 } from 'lucide-react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import ForceGraph from './force-graph';
 import AnimatedForceGraph from './animated-force-graph';
-import NodeSearch from './node-search';
-import NodeInfoPanel from './node-info-panel';
+import EnhancedGraphInteraction from './enhanced-graph-interaction';
 import EnhancedSearchBar from './enhanced-search-bar';
 import GraphPerformanceOptimizer from './graph-performance-optimizer';
-import EnhancedGraphInteraction from './enhanced-graph-interaction';
+import NodeInfoPanel from './node-info-panel';
+import NodeSearch from './node-search';
 import { useDeleteKnowledgeGraph } from './use-delete-graph';
 
 const KnowledgeGraph: React.FC = () => {
@@ -21,10 +23,14 @@ const KnowledgeGraph: React.FC = () => {
   const [showSearch, setShowSearch] = useState(false);
   const [showNodeInfo, setShowNodeInfo] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [interactionMode, setInteractionMode] = useState<'select' | 'pan' | 'zoom'>('select');
+  const [interactionMode, setInteractionMode] = useState<
+    'select' | 'pan' | 'zoom'
+  >('select');
   const [showNodeLabels, setShowNodeLabels] = useState(true);
   const [showEdgeLabels, setShowEdgeLabels] = useState(false);
-  const [layoutType, setLayoutType] = useState<'force' | 'circular' | 'hierarchical'>('force');
+  const [layoutType, setLayoutType] = useState<
+    'force' | 'circular' | 'hierarchical'
+  >('force');
   const [searchQuery, setSearchQuery] = useState('');
   const [enableAnimations, setEnableAnimations] = useState(true);
   const [animationDuration, setAnimationDuration] = useState(300);
@@ -34,10 +40,10 @@ const KnowledgeGraph: React.FC = () => {
     highlightedNode,
     handleNodeSelect,
     handleNodeHighlight,
-    clearSelection
   } = useKnowledgeGraphInteraction();
 
-  const { downloadContent, loading: downloadLoading } = useDownloadNodeContent();
+  const { downloadContent, loading: downloadLoading } =
+    useDownloadNodeContent();
 
   // Graph statistics
   const graphStats = useMemo(() => {
@@ -47,7 +53,7 @@ const KnowledgeGraph: React.FC = () => {
       totalNodes: data.graph.nodes?.length || 0,
       visibleNodes: data.graph.nodes?.length || 0,
       totalEdges: data.graph.edges?.length || 0,
-      visibleEdges: data.graph.edges?.length || 0
+      visibleEdges: data.graph.edges?.length || 0,
     };
   }, [data?.graph]);
 
@@ -72,28 +78,36 @@ const KnowledgeGraph: React.FC = () => {
   }, [isFullscreen]);
 
   // Enhanced node selection handler
-  const handleEnhancedNodeSelect = useCallback((node: any) => {
-    handleNodeSelect(node);
-    setShowNodeInfo(true);
-  }, [handleNodeSelect]);
+  const handleEnhancedNodeSelect = useCallback(
+    (node: any) => {
+      handleNodeSelect(node);
+      setShowNodeInfo(true);
+    },
+    [handleNodeSelect],
+  );
 
   // Download handler for node content
-  const handleNodeDownload = useCallback(async (format: 'txt' | 'json' | 'csv') => {
-    if (!selectedNode) return;
+  const handleNodeDownload = useCallback(
+    async (format: 'txt' | 'json' | 'csv') => {
+      if (!selectedNode) return;
 
-    try {
-      await downloadContent(selectedNode.id, {
-        type: 'chunks',
-        format,
-        include_metadata: true
-      });
-    } catch (error) {
-      console.error('Download failed:', error);
-    }
-  }, [selectedNode, downloadContent]);
+      try {
+        await downloadContent(selectedNode.id, {
+          type: 'chunks',
+          format,
+          include_metadata: true,
+        });
+      } catch (error) {
+        console.error('Download failed:', error);
+      }
+    },
+    [selectedNode, downloadContent],
+  );
 
   return (
-    <section className={`w-full h-full relative flex flex-col ${isFullscreen ? 'fixed inset-0 z-50 bg-white' : ''}`}>
+    <section
+      className={`w-full h-full relative flex flex-col ${isFullscreen ? 'fixed inset-0 z-50 bg-white' : ''}`}
+    >
       {/* Top Search Bar */}
       <div className="flex-shrink-0 p-4 bg-white border-b">
         <div className="max-w-2xl mx-auto">
@@ -122,107 +136,109 @@ const KnowledgeGraph: React.FC = () => {
 
         {/* Main Graph Area */}
         <div className="flex-1 relative">
-        {/* Control Buttons */}
-        <div className="absolute right-4 top-4 z-50 flex gap-2">
-          <Button
-            variant="outline"
-            size={'sm'}
-            onClick={() => setShowSearch(!showSearch)}
-          >
-            <Search className="w-4 h-4" />
-            {showSearch ? '隐藏高级搜索' : '高级搜索'}
-          </Button>
-
-          <Button
-            variant="outline"
-            size={'sm'}
-            onClick={() => setShowNodeInfo(!showNodeInfo)}
-            disabled={!selectedNode}
-          >
-            <Info className="w-4 h-4" />
-            {t('knowledgeGraph.nodeInfo')}
-          </Button>
-
-          <ConfirmDeleteDialog onOk={handleDeleteKnowledgeGraph}>
+          {/* Control Buttons */}
+          <div className="absolute right-4 top-4 z-50 flex gap-2">
             <Button
               variant="outline"
               size={'sm'}
+              onClick={() => setShowSearch(!showSearch)}
             >
-              <Trash2 className="w-4 h-4" />
-              {t('common.delete')}
+              <Search className="w-4 h-4" />
+              {showSearch ? '隐藏高级搜索' : '高级搜索'}
             </Button>
-          </ConfirmDeleteDialog>
-        </div>
 
-        {/* Enhanced Graph Interaction Controls */}
-        <EnhancedGraphInteraction
-          onZoomIn={handleZoomIn}
-          onZoomOut={handleZoomOut}
-          onResetView={handleResetView}
-          onToggleFullscreen={handleToggleFullscreen}
-          isFullscreen={isFullscreen}
-          selectedNode={selectedNode}
-          hoveredNode={highlightedNode}
-          graphStats={graphStats}
-          interactionMode={interactionMode}
-          onInteractionModeChange={setInteractionMode}
-          showNodeLabels={showNodeLabels}
-          onToggleNodeLabels={setShowNodeLabels}
-          showEdgeLabels={showEdgeLabels}
-          onToggleEdgeLabels={setShowEdgeLabels}
-          layoutType={layoutType}
-          onLayoutChange={setLayoutType}
-          enableAnimations={enableAnimations}
-          onToggleAnimations={setEnableAnimations}
-          animationDuration={animationDuration}
-          onAnimationDurationChange={setAnimationDuration}
-        />
+            <Button
+              variant="outline"
+              size={'sm'}
+              onClick={() => setShowNodeInfo(!showNodeInfo)}
+              disabled={!selectedNode}
+            >
+              <Info className="w-4 h-4" />
+              {t('knowledgeGraph.nodeInfo')}
+            </Button>
 
-        {/* Performance Optimized Graph */}
-        <GraphPerformanceOptimizer
-          nodes={data?.graph?.nodes || []}
-          edges={data?.graph?.edges || []}
-          onNodeClick={handleEnhancedNodeSelect}
-          onNodeHover={handleNodeHighlight}
-          searchQuery={searchQuery}
-          selectedNodeId={selectedNode?.id}
-          highlightedNodeId={highlightedNode}
-          maxVisibleNodes={500}
-          enableVirtualization={true}
-        >
-          {({ visibleNodes, visibleEdges, handleNodeClick, handleNodeHover }) => (
-            <AnimatedForceGraph
-              data={{
-                nodes: visibleNodes,
-                edges: visibleEdges
-              }}
-              show={true}
-              onNodeClick={handleNodeClick}
-              onNodeHover={handleNodeHover}
-              highlightedNodeId={highlightedNode}
-              selectedNodeId={selectedNode?.id}
-              showNodeLabels={showNodeLabels}
-              showEdgeLabels={showEdgeLabels}
-              layoutType={layoutType}
-              interactionMode={interactionMode}
-              enableAnimations={enableAnimations}
-              animationDuration={animationDuration}
-            />
-          )}
-        </GraphPerformanceOptimizer>
-
-        {/* Node Information Panel */}
-        {showNodeInfo && selectedNode && (
-          <div className="absolute left-4 top-4 z-50">
-            <NodeInfoPanel
-              node={selectedNode}
-              onClose={() => setShowNodeInfo(false)}
-              onDownload={handleNodeDownload}
-              downloadLoading={downloadLoading}
-            />
+            <ConfirmDeleteDialog onOk={handleDeleteKnowledgeGraph}>
+              <Button variant="outline" size={'sm'}>
+                <Trash2 className="w-4 h-4" />
+                {t('common.delete')}
+              </Button>
+            </ConfirmDeleteDialog>
           </div>
-        )}
-      </div>
+
+          {/* Enhanced Graph Interaction Controls */}
+          <EnhancedGraphInteraction
+            onZoomIn={handleZoomIn}
+            onZoomOut={handleZoomOut}
+            onResetView={handleResetView}
+            onToggleFullscreen={handleToggleFullscreen}
+            isFullscreen={isFullscreen}
+            selectedNode={selectedNode}
+            hoveredNode={highlightedNode}
+            graphStats={graphStats}
+            interactionMode={interactionMode}
+            onInteractionModeChange={setInteractionMode}
+            showNodeLabels={showNodeLabels}
+            onToggleNodeLabels={setShowNodeLabels}
+            showEdgeLabels={showEdgeLabels}
+            onToggleEdgeLabels={setShowEdgeLabels}
+            layoutType={layoutType}
+            onLayoutChange={setLayoutType}
+            enableAnimations={enableAnimations}
+            onToggleAnimations={setEnableAnimations}
+            animationDuration={animationDuration}
+            onAnimationDurationChange={setAnimationDuration}
+          />
+
+          {/* Performance Optimized Graph */}
+          <GraphPerformanceOptimizer
+            nodes={data?.graph?.nodes || []}
+            edges={data?.graph?.edges || []}
+            onNodeClick={handleEnhancedNodeSelect}
+            onNodeHover={handleNodeHighlight}
+            searchQuery={searchQuery}
+            selectedNodeId={selectedNode?.id}
+            highlightedNodeId={highlightedNode}
+            maxVisibleNodes={500}
+            enableVirtualization={true}
+          >
+            {({
+              visibleNodes,
+              visibleEdges,
+              handleNodeClick,
+              handleNodeHover,
+            }) => (
+              <AnimatedForceGraph
+                data={{
+                  nodes: visibleNodes,
+                  edges: visibleEdges,
+                }}
+                show={true}
+                onNodeClick={handleNodeClick}
+                onNodeHover={handleNodeHover}
+                highlightedNodeId={highlightedNode}
+                selectedNodeId={selectedNode?.id}
+                showNodeLabels={showNodeLabels}
+                showEdgeLabels={showEdgeLabels}
+                layoutType={layoutType}
+                interactionMode={interactionMode}
+                enableAnimations={enableAnimations}
+                animationDuration={animationDuration}
+              />
+            )}
+          </GraphPerformanceOptimizer>
+
+          {/* Node Information Panel */}
+          {showNodeInfo && selectedNode && (
+            <div className="absolute left-4 top-4 z-50">
+              <NodeInfoPanel
+                node={selectedNode}
+                onClose={() => setShowNodeInfo(false)}
+                onDownload={handleNodeDownload}
+                downloadLoading={downloadLoading}
+              />
+            </div>
+          )}
+        </div>
       </div>
     </section>
   );

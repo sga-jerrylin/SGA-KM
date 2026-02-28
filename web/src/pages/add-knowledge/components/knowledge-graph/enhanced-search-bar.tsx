@@ -1,23 +1,22 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import {
-  Search,
-  X,
-  Filter,
-  ChevronDown,
-  ChevronUp,
-  Target,
-  Zap,
-  Clock,
-  Star
-} from 'lucide-react';
-import { useTranslation } from 'react-i18next';
 import { useSearchKnowledgeGraphNodes } from '@/hooks/knowledge-graph-hooks';
+import {
+  ChevronUp,
+  Clock,
+  Filter,
+  Search,
+  Star,
+  Target,
+  X,
+  Zap,
+} from 'lucide-react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import SearchHints from './search-hints';
 
 interface EnhancedSearchBarProps {
@@ -33,17 +32,18 @@ const EnhancedSearchBar: React.FC<EnhancedSearchBarProps> = ({
   onSearchQueryChange,
   onNodeSelect,
   onNodeHighlight,
-  className = ''
+  className = '',
 }) => {
   const { t } = useTranslation();
   const [isExpanded, setIsExpanded] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [selectedEntityType, setSelectedEntityType] = useState<string>('all');
-  const [sortBy, setSortBy] = useState<'relevance' | 'name' | 'importance'>('relevance');
+  const [sortBy, setSortBy] = useState<'relevance' | 'name' | 'importance'>(
+    'relevance',
+  );
   const [showHints, setShowHints] = useState(false);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const searchInputRef = useRef<HTMLInputElement>(null);
-  const resultsRef = useRef<HTMLDivElement>(null);
 
   const { searchNodes, loading, results } = useSearchKnowledgeGraphNodes();
 
@@ -52,8 +52,9 @@ const EnhancedSearchBar: React.FC<EnhancedSearchBarProps> = ({
     if (searchQuery.trim()) {
       searchNodes({
         query: searchQuery,
-        entity_type: selectedEntityType === 'all' ? undefined : selectedEntityType,
-        limit: 20
+        entity_type:
+          selectedEntityType === 'all' ? undefined : selectedEntityType,
+        limit: 20,
       });
       setIsExpanded(true);
     } else {
@@ -62,22 +63,28 @@ const EnhancedSearchBar: React.FC<EnhancedSearchBarProps> = ({
   }, [searchQuery, selectedEntityType, searchNodes]);
 
   // 处理搜索输入
-  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    onSearchQueryChange(value);
+  const handleSearchChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value;
+      onSearchQueryChange(value);
 
-    // 保存搜索历史
-    if (value.trim() && !recentSearches.includes(value.trim())) {
-      setRecentSearches(prev => [value.trim(), ...prev.slice(0, 9)]);
-    }
-  }, [onSearchQueryChange, recentSearches]);
+      // 保存搜索历史
+      if (value.trim() && !recentSearches.includes(value.trim())) {
+        setRecentSearches((prev) => [value.trim(), ...prev.slice(0, 9)]);
+      }
+    },
+    [onSearchQueryChange, recentSearches],
+  );
 
   // 处理示例搜索
-  const handleExampleSearch = useCallback((query: string) => {
-    onSearchQueryChange(query);
-    setShowHints(false);
-    searchInputRef.current?.focus();
-  }, [onSearchQueryChange]);
+  const handleExampleSearch = useCallback(
+    (query: string) => {
+      onSearchQueryChange(query);
+      setShowHints(false);
+      searchInputRef.current?.focus();
+    },
+    [onSearchQueryChange],
+  );
 
   // 清除搜索
   const handleClearSearch = useCallback(() => {
@@ -88,16 +95,22 @@ const EnhancedSearchBar: React.FC<EnhancedSearchBarProps> = ({
   }, [onSearchQueryChange]);
 
   // 节点选择处理
-  const handleNodeClick = useCallback((node: any) => {
-    onNodeSelect?.(node);
-    onNodeHighlight?.(node.id);
-    setIsExpanded(false);
-  }, [onNodeSelect, onNodeHighlight]);
+  const handleNodeClick = useCallback(
+    (node: any) => {
+      onNodeSelect?.(node);
+      onNodeHighlight?.(node.id);
+      setIsExpanded(false);
+    },
+    [onNodeSelect, onNodeHighlight],
+  );
 
   // 节点悬停处理
-  const handleNodeHover = useCallback((node: any) => {
-    onNodeHighlight?.(node.id);
-  }, [onNodeHighlight]);
+  const handleNodeHover = useCallback(
+    (node: any) => {
+      onNodeHighlight?.(node.id);
+    },
+    [onNodeHighlight],
+  );
 
   const handleNodeLeave = useCallback(() => {
     onNodeHighlight?.(null);
@@ -106,9 +119,9 @@ const EnhancedSearchBar: React.FC<EnhancedSearchBarProps> = ({
   // 排序搜索结果
   const sortedResults = React.useMemo(() => {
     if (!results?.nodes) return [];
-    
+
     const nodes = [...results.nodes];
-    
+
     switch (sortBy) {
       case 'name':
         return nodes.sort((a, b) => a.id.localeCompare(b.id));
@@ -122,7 +135,9 @@ const EnhancedSearchBar: React.FC<EnhancedSearchBarProps> = ({
   // 获取实体类型列表
   const entityTypes = React.useMemo(() => {
     if (!results?.nodes) return [];
-    const types = new Set(results.nodes.map(node => node.entity_type).filter(Boolean));
+    const types = new Set(
+      results.nodes.map((node) => node.entity_type).filter(Boolean),
+    );
     return Array.from(types);
   }, [results]);
 
@@ -272,7 +287,9 @@ const EnhancedSearchBar: React.FC<EnhancedSearchBarProps> = ({
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-1">
                               <Target className="w-3 h-3 text-blue-500 flex-shrink-0" />
-                              <h4 className="font-medium text-sm truncate">{node.id}</h4>
+                              <h4 className="font-medium text-sm truncate">
+                                {node.id}
+                              </h4>
                             </div>
                             {node.description && (
                               <p className="text-xs text-gray-600 line-clamp-2 mb-2">
@@ -284,7 +301,10 @@ const EnhancedSearchBar: React.FC<EnhancedSearchBarProps> = ({
                                 {node.entity_type}
                               </Badge>
                               {node.pagerank && (
-                                <Badge variant="secondary" className="text-xs flex items-center gap-1">
+                                <Badge
+                                  variant="secondary"
+                                  className="text-xs flex items-center gap-1"
+                                >
                                   <Star className="w-2 h-2" />
                                   {(node.pagerank * 100).toFixed(1)}%
                                 </Badge>

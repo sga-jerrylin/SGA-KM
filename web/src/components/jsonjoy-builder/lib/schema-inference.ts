@@ -90,6 +90,9 @@ function detectEnumsInArrayItems(
   const updatedProperties = { ...mergedProperties };
   // Update schema for properties that look like enums
   for (const key in valueMap) {
+    if (!Object.prototype.hasOwnProperty.call(valueMap, key)) {
+      continue;
+    }
     const distinctValues = Array.from(valueMap[key]);
     if (
       distinctValues.length > 1 &&
@@ -119,6 +122,9 @@ function detectSemanticFormatsInArrayItems(
   const updatedProperties = { ...mergedProperties };
 
   for (const key in updatedProperties) {
+    if (!Object.prototype.hasOwnProperty.call(updatedProperties, key)) {
+      continue;
+    }
     const currentSchema = asObjectSchema(updatedProperties[key]);
 
     // Coordinates Detection
@@ -217,8 +223,8 @@ function processArrayOfObjects(
   }
 
   const requiredProps = Object.entries(propertyCounts)
-    .filter(([_, count]) => count === totalItems)
-    .map(([key, _]) => key);
+    .filter(([, count]) => count === totalItems)
+    .map(([key]) => key);
 
   // Apply Enum Detection
   mergedProperties = detectEnumsInArrayItems(

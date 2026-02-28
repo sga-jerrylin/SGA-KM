@@ -196,6 +196,8 @@ WORKDIR /ragflow
 # Copy Python environment and packages
 ENV VIRTUAL_ENV=/ragflow/.venv
 COPY --from=builder ${VIRTUAL_ENV} ${VIRTUAL_ENV}
+# Note: Removed .venv_backup to reduce image size by ~800MB-1.2GB
+# If volume initialization is needed, handle it in entrypoint.sh instead
 ENV PATH="${VIRTUAL_ENV}/bin:${PATH}"
 
 ENV PYTHONPATH=/ragflow/

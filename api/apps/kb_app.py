@@ -21,6 +21,7 @@ from datetime import datetime
 
 from quart import request
 import numpy as np
+import networkx as nx
 
 from api.db.services.connector_service import Connector2KbService
 from api.db.services.llm_service import LLMBundle
@@ -363,13 +364,83 @@ def knowledge_graph(kb_id):
         obj[ty] = content_json
 
     if "nodes" in obj["graph"]:
-        # Sort nodes by pagerank, return all nodes (no limit)
-        obj["graph"]["nodes"] = sorted(obj["graph"]["nodes"], key=lambda x: x.get("pagerank", 0), reverse=True)
-        if "edges" in obj["graph"]:
-            node_id_set = { o["id"] for o in obj["graph"]["nodes"] }
-            # Filter self-loops and edges not connected to existing nodes, return all edges (no limit)
-            filtered_edges = [o for o in obj["graph"]["edges"] if o["source"] != o["target"] and o["source"] in node_id_set and o["target"] in node_id_set]
-            obj["graph"]["edges"] = sorted(filtered_edges, key=lambda x: x.get("weight", 0), reverse=True)
+        nodes = sorted(obj["graph"]["nodes"], key=lambda x: x.get("pagerank", 0), reverse=True)
+        max_nodes_threshold = 2000
+
+        if len(nodes) > max_nodes_threshold:
+            try:
+                node_to_community = {}
+                has_precalc = any(n.get("communities") for n in nodes[:20])
+
+                if has_precalc:
+                    for n in nodes:
+                        comms = n.get("communities", [])
+                        comm = str(comms[0]) if comms else "other"
+                        node_to_community[n["id"]] = comm
+                else:
+                    g = nx.Graph()
+                    g.add_nodes_from([n["id"] for n in nodes])
+                    if "edges" in obj["graph"]:
+                        g.add_edges_from([(e["source"], e["target"]) for e in obj["graph"]["edges"]])
+                    communities = list(nx.community.label_propagation_communities(g))
+                    for idx, comm_set in enumerate(communities):
+                        comm_id = f"Cluster_{idx}"
+                        for node_id in comm_set:
+                            node_to_community[node_id] = comm_id
+
+                agg_nodes_map = {}
+                for n in nodes:
+                    comm_id = node_to_community.get(n["id"], "other")
+                    if comm_id not in agg_nodes_map:
+                        agg_nodes_map[comm_id] = {
+                            "id": comm_id,
+                            "label": comm_id,
+                            "entity_type": "COMMUNITY",
+                            "pagerank": 0,
+                            "size_count": 0,
+                            "img": ""
+                        }
+                    agg_nodes_map[comm_id]["pagerank"] += n.get("pagerank", 0)
+                    agg_nodes_map[comm_id]["size_count"] += 1
+
+                for comm_id, node in agg_nodes_map.items():
+                    node["label"] = f"{comm_id} ({node['size_count']})"
+
+                agg_edges_map = {}
+                if "edges" in obj["graph"]:
+                    for e in obj["graph"]["edges"]:
+                        src = node_to_community.get(e["source"])
+                        tgt = node_to_community.get(e["target"])
+                        if src and tgt and src != tgt:
+                            key = tuple(sorted((src, tgt)))
+                            if key not in agg_edges_map:
+                                agg_edges_map[key] = {
+                                    "source": key[0],
+                                    "target": key[1],
+                                    "weight": 0
+                                }
+                            agg_edges_map[key]["weight"] += 1
+
+                obj["graph"]["nodes"] = sorted(list(agg_nodes_map.values()), key=lambda x: x["pagerank"], reverse=True)
+                obj["graph"]["edges"] = sorted(list(agg_edges_map.values()), key=lambda x: x["weight"], reverse=True)
+            except Exception as e:
+                logging.error(f"Graph aggregation failed: {e}")
+                obj["graph"]["nodes"] = nodes[:max_nodes_threshold]
+                if "edges" in obj["graph"]:
+                    node_id_set = {o["id"] for o in obj["graph"]["nodes"]}
+                    obj["graph"]["edges"] = [
+                        o for o in obj["graph"]["edges"]
+                        if o["source"] != o["target"] and o["source"] in node_id_set and o["target"] in node_id_set
+                    ]
+        else:
+            obj["graph"]["nodes"] = nodes
+            if "edges" in obj["graph"]:
+                node_id_set = {o["id"] for o in obj["graph"]["nodes"]}
+                filtered_edges = [
+                    o for o in obj["graph"]["edges"]
+                    if o["source"] != o["target"] and o["source"] in node_id_set and o["target"] in node_id_set
+                ]
+                obj["graph"]["edges"] = sorted(filtered_edges, key=lambda x: x.get("weight", 0), reverse=True)
     return get_json_result(data=obj)
 
 

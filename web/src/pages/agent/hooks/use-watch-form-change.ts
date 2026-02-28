@@ -7,16 +7,23 @@ export function useWatchFormChange(
   form?: UseFormReturn<any>,
   enableReplacement = false,
 ) {
-  let values = useWatch({ control: form?.control });
+  const values = useWatch({ control: form?.control });
   const { updateNodeForm, replaceNodeForm } = useGraphStore((state) => state);
 
   useEffect(() => {
     // Manually triggered form updates are synchronized to the canvas
     if (id) {
-      values = form?.getValues() || {};
-      let nextValues: any = values;
+      const currentValues = form?.getValues() || values || {};
+      const nextValues: any = currentValues;
 
       (enableReplacement ? replaceNodeForm : updateNodeForm)(id, nextValues);
     }
-  }, [form?.formState.isDirty, id, updateNodeForm, values]);
+  }, [
+    enableReplacement,
+    form?.formState.isDirty,
+    id,
+    replaceNodeForm,
+    updateNodeForm,
+    values,
+  ]);
 }

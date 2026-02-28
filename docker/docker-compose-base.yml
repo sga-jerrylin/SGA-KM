@@ -225,6 +225,8 @@ services:
     ports:
       - ${TEI_PORT-6380}:80
     env_file: .env
+    volumes:
+      - ../models:/data
     networks:
       - ragflow
     command: ["--model-id", "/data/${TEI_MODEL}", "--auto-truncate"]
@@ -239,6 +241,8 @@ services:
     ports:
       - ${TEI_PORT-6380}:80
     env_file: .env
+    volumes:
+      - ../models:/data
     networks:
       - ragflow
     command: ["--model-id", "/data/${TEI_MODEL}", "--auto-truncate"]
@@ -292,6 +296,10 @@ volumes:
   tei_data:
     driver: local
   kibana_data:
+    driver: local
+  uv_tools_data:
+    driver: local
+  venv_data:
     driver: local
 
 networks:

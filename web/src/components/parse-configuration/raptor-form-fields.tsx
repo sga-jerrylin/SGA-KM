@@ -50,11 +50,6 @@ export const showTagItems = (parserId: DocumentParserType) => {
 
 const UseRaptorField = 'parser_config.raptor.use_raptor';
 const RandomSeedField = 'parser_config.raptor.random_seed';
-const MaxTokenField = 'parser_config.raptor.max_token';
-const ThresholdField = 'parser_config.raptor.threshold';
-const MaxCluster = 'parser_config.raptor.max_cluster';
-const Prompt = 'parser_config.raptor.prompt';
-
 // The three types "table", "resume" and "one" do not display this configuration.
 
 const RaptorFormFields = ({
@@ -77,7 +72,7 @@ const RaptorFormFields = ({
       <FormField
         control={form.control}
         name={UseRaptorField}
-        render={({ field }) => {
+        render={() => {
           return (
             <FormItem
               defaultChecked={false}

@@ -43,8 +43,6 @@ const Login = () => {
   const { t } = useTranslation('translation', { keyPrefix: 'login' });
   const [isLoginPage, setIsLoginPage] = useState(true);
 
-  const [isUserInteracting, setIsUserInteracting] = useState(true);
-
   const loading =
     signLoading ||
     registerLoading ||
@@ -154,7 +152,7 @@ const Login = () => {
         color={'rgb(128, 255, 248)'}
       />
       <div className=" h-[inherit] relative overflow-auto">
-        <BgSvg isPaused={isUserInteracting} />
+        <BgSvg />
 
         <div className="absolute top-3 flex flex-col items-center mb-12 w-full text-text-primary">
           <div className="flex items-center mb-4 w-full pl-10 pt-10 ">

@@ -1,14 +1,17 @@
-import React, { useState, useCallback, useMemo } from 'react';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Search, Download, FileText, Eye } from 'lucide-react';
+import {
+  useDownloadNodeContent,
+  useGetNodeAssociatedFiles,
+  useSearchKnowledgeGraphNodes,
+} from '@/hooks/knowledge-graph-hooks';
+import { Search } from 'lucide-react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useSearchKnowledgeGraphNodes, useGetNodeAssociatedFiles, useDownloadNodeContent } from '@/hooks/knowledge-graph-hooks';
 import AssociatedFilesViewer from './associated-files-viewer';
 
 interface NodeSearchProps {
@@ -18,16 +21,19 @@ interface NodeSearchProps {
 
 const ENTITY_TYPES = [
   'person',
-  'organization', 
+  'organization',
   'location',
   'geo',
   'event',
   'category',
   'product',
-  'concept'
+  'concept',
 ];
 
-const NodeSearch: React.FC<NodeSearchProps> = ({ onNodeSelect, onNodeHighlight }) => {
+const NodeSearch: React.FC<NodeSearchProps> = ({
+  onNodeSelect,
+  onNodeHighlight,
+}) => {
   const { t } = useTranslation();
   const [query, setQuery] = useState('');
   const [selectedEntityTypes, setSelectedEntityTypes] = useState<string[]>([]);
@@ -35,22 +41,20 @@ const NodeSearch: React.FC<NodeSearchProps> = ({ onNodeSelect, onNodeHighlight }
   const [showAssociatedFiles, setShowAssociatedFiles] = useState(false);
 
   // Search hooks
-  const { 
-    data: searchResults, 
-    loading: searchLoading, 
-    searchNodes 
+  const {
+    data: searchResults,
+    loading: searchLoading,
+    searchNodes,
   } = useSearchKnowledgeGraphNodes();
 
   const {
     data: associatedFiles,
     loading: filesLoading,
-    getAssociatedFiles
+    getAssociatedFiles,
   } = useGetNodeAssociatedFiles();
 
-  const {
-    downloadContent,
-    loading: downloadLoading
-  } = useDownloadNodeContent();
+  const { downloadContent, loading: downloadLoading } =
+    useDownloadNodeContent();
 
   // Handle search
   const handleSearch = useCallback(() => {
@@ -62,51 +66,60 @@ const NodeSearch: React.FC<NodeSearchProps> = ({ onNodeSelect, onNodeHighlight }
       query: query.trim(),
       entity_types: selectedEntityTypes,
       limit: 50,
-      offset: 0
+      offset: 0,
     });
   }, [query, selectedEntityTypes, searchNodes]);
 
   // Handle entity type selection
-  const handleEntityTypeChange = useCallback((entityType: string, checked: boolean) => {
-    setSelectedEntityTypes(prev => {
-      if (checked) {
-        return [...prev, entityType];
-      } else {
-        return prev.filter(type => type !== entityType);
-      }
-    });
-  }, []);
+  const handleEntityTypeChange = useCallback(
+    (entityType: string, checked: boolean) => {
+      setSelectedEntityTypes((prev) => {
+        if (checked) {
+          return [...prev, entityType];
+        } else {
+          return prev.filter((type) => type !== entityType);
+        }
+      });
+    },
+    [],
+  );
 
   // Handle node selection
-  const handleNodeClick = useCallback((node: any) => {
-    setSelectedNode(node);
-    onNodeSelect?.(node);
-    onNodeHighlight?.(node.id);
-    
-    // Get associated files
-    getAssociatedFiles(node.id);
-    setShowAssociatedFiles(true);
-  }, [onNodeSelect, onNodeHighlight, getAssociatedFiles]);
+  const handleNodeClick = useCallback(
+    (node: any) => {
+      setSelectedNode(node);
+      onNodeSelect?.(node);
+      onNodeHighlight?.(node.id);
+
+      // Get associated files
+      getAssociatedFiles(node.id);
+      setShowAssociatedFiles(true);
+    },
+    [onNodeSelect, onNodeHighlight, getAssociatedFiles],
+  );
 
   // Handle download
-  const handleDownload = useCallback(async (format: 'txt' | 'json' | 'csv') => {
-    if (!selectedNode) return;
-    
-    try {
-      await downloadContent(selectedNode.id, {
-        type: 'chunks',
-        format,
-        include_metadata: true
-      });
-    } catch (error) {
-      console.error('Download failed:', error);
-    }
-  }, [selectedNode, downloadContent]);
+  const handleDownload = useCallback(
+    async (format: 'txt' | 'json' | 'csv') => {
+      if (!selectedNode) return;
+
+      try {
+        await downloadContent(selectedNode.id, {
+          type: 'chunks',
+          format,
+          include_metadata: true,
+        });
+      } catch (error) {
+        console.error('Download failed:', error);
+      }
+    },
+    [selectedNode, downloadContent],
+  );
 
   // Memoized search results
   const sortedResults = useMemo(() => {
     if (!searchResults?.nodes) return [];
-    
+
     return [...searchResults.nodes].sort((a, b) => {
       // Sort by pagerank (relevance) descending
       return (b.pagerank || 0) - (a.pagerank || 0);
@@ -133,11 +146,7 @@ const NodeSearch: React.FC<NodeSearchProps> = ({ onNodeSelect, onNodeHighlight }
               onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
               className="flex-1"
             />
-            <Button 
-              onClick={handleSearch} 
-              disabled={searchLoading}
-              size="sm"
-            >
+            <Button onClick={handleSearch} disabled={searchLoading} size="sm">
               <Search className="w-4 h-4" />
             </Button>
           </div>
@@ -153,11 +162,11 @@ const NodeSearch: React.FC<NodeSearchProps> = ({ onNodeSelect, onNodeHighlight }
                   <Checkbox
                     id={entityType}
                     checked={selectedEntityTypes.includes(entityType)}
-                    onCheckedChange={(checked) => 
+                    onCheckedChange={(checked) =>
                       handleEntityTypeChange(entityType, checked as boolean)
                     }
                   />
-                  <label 
+                  <label
                     htmlFor={entityType}
                     className="text-sm capitalize cursor-pointer"
                   >
@@ -172,8 +181,8 @@ const NodeSearch: React.FC<NodeSearchProps> = ({ onNodeSelect, onNodeHighlight }
           {selectedEntityTypes.length > 0 && (
             <div className="flex flex-wrap gap-1">
               {selectedEntityTypes.map((type) => (
-                <Badge 
-                  key={type} 
+                <Badge
+                  key={type}
                   variant="secondary"
                   className="cursor-pointer"
                   onClick={() => handleEntityTypeChange(type, false)}
@@ -204,7 +213,9 @@ const NodeSearch: React.FC<NodeSearchProps> = ({ onNodeSelect, onNodeHighlight }
                   <div
                     key={node.id}
                     className={`p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors ${
-                      selectedNode?.id === node.id ? 'border-blue-500 bg-blue-50' : ''
+                      selectedNode?.id === node.id
+                        ? 'border-blue-500 bg-blue-50'
+                        : ''
                     }`}
                     onClick={() => handleNodeClick(node)}
                   >
@@ -222,7 +233,8 @@ const NodeSearch: React.FC<NodeSearchProps> = ({ onNodeSelect, onNodeHighlight }
                           </Badge>
                           {node.pagerank && (
                             <Badge variant="secondary" className="text-xs">
-                              {t('knowledgeGraph.relevance')}: {(node.pagerank * 100).toFixed(1)}%
+                              {t('knowledgeGraph.relevance')}:{' '}
+                              {(node.pagerank * 100).toFixed(1)}%
                             </Badge>
                           )}
                         </div>

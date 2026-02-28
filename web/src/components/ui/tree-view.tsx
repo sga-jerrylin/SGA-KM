@@ -132,13 +132,11 @@ const TreeItem = React.forwardRef<HTMLDivElement, TreeItemProps>(
     },
     ref,
   ) => {
-    if (!(data instanceof Array)) {
-      data = [data];
-    }
+    const items = data instanceof Array ? data : [data];
     return (
       <div ref={ref} role="tree" className={className} {...props}>
         <ul>
-          {data.map((item) => (
+          {items.map((item) => (
             <li key={item.id}>
               {item.children ? (
                 <TreeNode

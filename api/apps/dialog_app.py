@@ -86,6 +86,9 @@ async def set_dialog():
             return get_data_error_result(message=f'Datasets use different embedding models: {[kb.embd_id for kb in kbs]}"')
 
         llm_id = req.get("llm_id", tenant.llm_id)
+        permission = req.get("permission", "me")
+        if permission not in ["me", "team"]:
+            permission = "me"
         if not dialog_id:
             dia = {
                 "id": get_uuid(),
@@ -102,7 +105,8 @@ async def set_dialog():
                 "rerank_id": rerank_id,
                 "similarity_threshold": similarity_threshold,
                 "vector_similarity_weight": vector_similarity_weight,
-                "icon": icon
+                "icon": icon,
+                "permission": permission
             }
             if not DialogService.save(**dia):
                 return get_data_error_result(message="Fail to new a dialog!")
@@ -185,9 +189,8 @@ async def list_dialogs_next():
     owner_ids = req.get("owner_ids", [])
     try:
         if not owner_ids:
-            # tenants = TenantService.get_joined_tenants_by_user_id(current_user.id)
-            # tenants = [tenant["tenant_id"] for tenant in tenants]
-            tenants = [] # keep it here
+            tenants = TenantService.get_joined_tenants_by_user_id(current_user.id)
+            tenants = [tenant["tenant_id"] for tenant in tenants]
             dialogs, total = DialogService.get_by_tenant_ids(
                 tenants, current_user.id, page_number,
                 items_per_page, orderby, desc, keywords, parser_id)

@@ -1,16 +1,15 @@
-import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
 import {
-  Search,
-  Zap,
-  Target,
   Filter,
   Keyboard,
   Lightbulb,
-  TrendingUp
+  Search,
+  Target,
+  TrendingUp,
+  Zap,
 } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
+import React from 'react';
 
 interface SearchHintsProps {
   onExampleSearch?: (query: string) => void;
@@ -21,35 +20,33 @@ interface SearchHintsProps {
 const SearchHints: React.FC<SearchHintsProps> = ({
   onExampleSearch,
   recentSearches = [],
-  popularNodes = []
+  popularNodes = [],
 }) => {
-  const { t } = useTranslation();
-
   const searchTips = [
     {
       icon: <Search className="w-4 h-4" />,
       title: '基础搜索',
       description: '输入节点名称或关键词进行搜索',
-      example: '人工智能'
+      example: '人工智能',
     },
     {
       icon: <Filter className="w-4 h-4" />,
       title: '类型过滤',
       description: '使用过滤器按实体类型搜索',
-      example: 'type:person'
+      example: 'type:person',
     },
     {
       icon: <Target className="w-4 h-4" />,
       title: '精确匹配',
       description: '使用引号进行精确匹配',
-      example: '"机器学习"'
+      example: '"机器学习"',
     },
     {
       icon: <Zap className="w-4 h-4" />,
       title: '快捷键',
       description: '使用 Ctrl+K 快速打开搜索',
-      example: 'Ctrl+K'
-    }
+      example: 'Ctrl+K',
+    },
   ];
 
   const handleExampleClick = (example: string) => {
@@ -76,9 +73,7 @@ const SearchHints: React.FC<SearchHintsProps> = ({
                     className="flex items-start gap-3 p-2 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
                     onClick={() => handleExampleClick(tip.example)}
                   >
-                    <div className="text-blue-500 mt-0.5">
-                      {tip.icon}
-                    </div>
+                    <div className="text-blue-500 mt-0.5">{tip.icon}</div>
                     <div className="flex-1 min-w-0">
                       <h4 className="font-medium text-xs text-gray-900 mb-1">
                         {tip.title}
@@ -150,13 +145,19 @@ const SearchHints: React.FC<SearchHintsProps> = ({
               <div className="flex items-center justify-between text-xs text-gray-500">
                 <div className="flex items-center gap-4">
                   <span className="flex items-center gap-1">
-                    <kbd className="px-1 py-0.5 bg-gray-100 rounded text-xs">Ctrl</kbd>
+                    <kbd className="px-1 py-0.5 bg-gray-100 rounded text-xs">
+                      Ctrl
+                    </kbd>
                     <span>+</span>
-                    <kbd className="px-1 py-0.5 bg-gray-100 rounded text-xs">K</kbd>
+                    <kbd className="px-1 py-0.5 bg-gray-100 rounded text-xs">
+                      K
+                    </kbd>
                     <span>快速搜索</span>
                   </span>
                   <span className="flex items-center gap-1">
-                    <kbd className="px-1 py-0.5 bg-gray-100 rounded text-xs">Esc</kbd>
+                    <kbd className="px-1 py-0.5 bg-gray-100 rounded text-xs">
+                      Esc
+                    </kbd>
                     <span>关闭</span>
                   </span>
                 </div>

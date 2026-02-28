@@ -32,102 +32,114 @@ export const useObjectFields = () => {
     },
     [],
   );
-  const validateKeys = (
-    obj: any,
-    path: (string | number)[] = [],
-  ): Array<{ path: (string | number)[]; message: string }> => {
-    const errors: Array<{ path: (string | number)[]; message: string }> = [];
-    if (typeof obj === 'object' && !Array.isArray(obj)) {
-      if (isEmpty(obj)) {
-        errors.push({
-          path: [...path],
-          message: 'No empty parameters are allowed.',
+  const validateKeys = useCallback(
+    (
+      obj: any,
+      path: (string | number)[] = [],
+    ): Array<{ path: (string | number)[]; message: string }> => {
+      const errors: Array<{ path: (string | number)[]; message: string }> = [];
+      if (typeof obj === 'object' && !Array.isArray(obj)) {
+        if (isEmpty(obj)) {
+          errors.push({
+            path: [...path],
+            message: 'No empty parameters are allowed.',
+          });
+        }
+        for (const key in obj) {
+          if (obj.hasOwnProperty(key)) {
+            if (!/^[a-zA-Z_0-9]+$/.test(key)) {
+              errors.push({
+                path: [...path, key],
+                message: `Key "${key}" is invalid. Keys can only contain letters and underscores and numbers.`,
+              });
+            }
+            const nestedErrors = validateKeys(obj[key], [...path, key]);
+            errors.push(...nestedErrors);
+          }
+        }
+      } else if (Array.isArray(obj)) {
+        obj.forEach((item, index) => {
+          const nestedErrors = validateKeys(item, [...path, index]);
+          errors.push(...nestedErrors);
         });
       }
-      for (const key in obj) {
-        if (obj.hasOwnProperty(key)) {
-          if (!/^[a-zA-Z_0-9]+$/.test(key)) {
-            errors.push({
-              path: [...path, key],
-              message: `Key "${key}" is invalid. Keys can only contain letters and underscores and numbers.`,
-            });
-          }
-          const nestedErrors = validateKeys(obj[key], [...path, key]);
-          errors.push(...nestedErrors);
+
+      return errors;
+    },
+    [],
+  );
+  const objectRender = useCallback(
+    (field: FieldValues) => {
+      // const fieldValue =
+      //   typeof field.value === 'object'
+      //     ? JSON.stringify(field.value, null, 2)
+      //     : JSON.stringify({}, null, 2);
+      // console.log('object-render-field', field, fieldValue);
+      return (
+        // <Editor
+        //   height={200}
+        //   defaultLanguage="json"
+        //   theme="vs-dark"
+        //   value={fieldValue}
+        //   onChange={field.onChange}
+        // />
+        <JsonEditor
+          value={field.value}
+          onChange={field.onChange}
+          height="400px"
+          options={{
+            mode: 'code',
+            navigationBar: false,
+            mainMenuBar: true,
+            history: true,
+            onValidate: (json) => {
+              return validateKeys(json);
+            },
+          }}
+        />
+      );
+    },
+    [validateKeys],
+  );
+
+  const objectValidate = useCallback(
+    (value: any) => {
+      try {
+        if (validateKeys(value, [])?.length > 0) {
+          throw new Error(t('flow.formatTypeError'));
         }
+        if (!z.object({}).safeParse(value).success) {
+          throw new Error(t('flow.formatTypeError'));
+        }
+        if (value && typeof value === 'string' && !JSON.parse(value)) {
+          throw new Error(t('flow.formatTypeError'));
+        }
+        return true;
+      } catch (e) {
+        console.log('object-render-error', e, value);
+        throw new Error(t('flow.formatTypeError'));
       }
-    } else if (Array.isArray(obj)) {
-      obj.forEach((item, index) => {
-        const nestedErrors = validateKeys(item, [...path, index]);
-        errors.push(...nestedErrors);
-      });
-    }
+    },
+    [validateKeys],
+  );
 
-    return errors;
-  };
-  const objectRender = useCallback((field: FieldValues) => {
-    // const fieldValue =
-    //   typeof field.value === 'object'
-    //     ? JSON.stringify(field.value, null, 2)
-    //     : JSON.stringify({}, null, 2);
-    // console.log('object-render-field', field, fieldValue);
-    return (
-      // <Editor
-      //   height={200}
-      //   defaultLanguage="json"
-      //   theme="vs-dark"
-      //   value={fieldValue}
-      //   onChange={field.onChange}
-      // />
-      <JsonEditor
-        value={field.value}
-        onChange={field.onChange}
-        height="400px"
-        options={{
-          mode: 'code',
-          navigationBar: false,
-          mainMenuBar: true,
-          history: true,
-          onValidate: (json) => {
-            return validateKeys(json);
-          },
-        }}
-      />
-    );
-  }, []);
-
-  const objectValidate = useCallback((value: any) => {
-    try {
-      if (validateKeys(value, [])?.length > 0) {
+  const arrayObjectValidate = useCallback(
+    (value: any) => {
+      try {
+        if (validateKeys(value, [])?.length > 0) {
+          throw new Error(t('flow.formatTypeError'));
+        }
+        if (value && typeof value === 'string' && !JSON.parse(value)) {
+          throw new Error(t('flow.formatTypeError'));
+        }
+        return true;
+      } catch (e) {
+        console.log('object-render-error', e, value);
         throw new Error(t('flow.formatTypeError'));
       }
-      if (!z.object({}).safeParse(value).success) {
-        throw new Error(t('flow.formatTypeError'));
-      }
-      if (value && typeof value === 'string' && !JSON.parse(value)) {
-        throw new Error(t('flow.formatTypeError'));
-      }
-      return true;
-    } catch (e) {
-      console.log('object-render-error', e, value);
-      throw new Error(t('flow.formatTypeError'));
-    }
-  }, []);
-
-  const arrayObjectValidate = useCallback((value: any) => {
-    try {
-      if (validateKeys(value, [])?.length > 0) {
-        throw new Error(t('flow.formatTypeError'));
-      }
-      if (value && typeof value === 'string' && !JSON.parse(value)) {
-        throw new Error(t('flow.formatTypeError'));
-      }
-      return true;
-    } catch (e) {
-      console.log('object-render-error', e, value);
-      throw new Error(t('flow.formatTypeError'));
-    }
-  }, []);
+    },
+    [validateKeys],
+  );
 
   const arrayStringRender = useCallback((field: FieldValues, type = 'text') => {
     const values = Array.isArray(field.value)

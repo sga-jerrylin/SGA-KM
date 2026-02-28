@@ -49,7 +49,9 @@ const StringEditor: React.FC<TypeEditorProps> = ({
       : { ...schema };
 
     // Get all validation props except type and description
-    const { type: _, description: __, ...validationProps } = baseSchema;
+    const validationProps = { ...baseSchema };
+    delete validationProps.type;
+    delete validationProps.description;
 
     // Create the updated validation schema
     const updatedValidation: ObjectJSONSchema = {
@@ -86,7 +88,8 @@ const StringEditor: React.FC<TypeEditorProps> = ({
 
       // Use a type safe approach
       if (!isBooleanSchema(baseSchema) && 'enum' in baseSchema) {
-        const { enum: _, ...rest } = baseSchema;
+        const rest = { ...baseSchema };
+        delete rest.enum;
         onChange(rest as ObjectJSONSchema);
       } else {
         onChange(baseSchema as ObjectJSONSchema);

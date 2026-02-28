@@ -217,7 +217,7 @@ const MarkdownContent = ({
 
   const renderReference = useCallback(
     (text: string) => {
-      let replacedText = reactStringReplace(text, currentReg, (match, i) => {
+      let replacedText = reactStringReplace(text, currentReg, (match) => {
         const chunkIndex = getChunkIndex(match);
 
         const { imageId, chunkItem, documentId } = getReferenceInfo(chunkIndex);

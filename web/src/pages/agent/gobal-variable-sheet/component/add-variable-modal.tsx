@@ -88,7 +88,14 @@ export const AddVariableModal = (props: {
         // }, 0);
       };
     }
-  }, [fields]);
+  }, [
+    fields,
+    handleCustomSchema,
+    handleCustomValidate,
+    handleFieldUpdate,
+    handleRender,
+    setDefaultValues,
+  ]);
 
   const handleSubmit = async (fieldValue: FieldValues) => {
     await submitForm(fieldValue);

@@ -9,7 +9,6 @@ import {
 } from 'lucide-react';
 import { useMemo } from 'react';
 import { TimelineNodeType } from '../../constant';
-import { IPipelineFileLogDetail } from '../../interface';
 
 export type ITimelineNodeObj = {
   title: string;
@@ -49,13 +48,11 @@ export const TimelineNodeObj = {
 export interface TimelineDataFlowProps {
   activeId: number | string;
   activeFunc: (id: number | string, step: TimelineNode) => void;
-  data: IPipelineFileLogDetail;
   timelineNodes: TimelineNode[];
 }
 const TimelineDataFlow = ({
   activeFunc,
   activeId,
-  data,
   timelineNodes,
 }: TimelineDataFlowProps) => {
   // const [timelineNodeArr,setTimelineNodeArr] = useState<ITimelineNodeObj & {id: number | string}>()

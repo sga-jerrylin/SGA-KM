@@ -13,18 +13,17 @@ function transferInputsArrayToObject(inputs: BeginQuery[] = []) {
 }
 
 export function useWatchFormChange(id?: string, form?: UseFormReturn) {
-  let values = useWatch({ control: form?.control });
+  const values = useWatch({ control: form?.control });
   const updateNodeForm = useGraphStore((state) => state.updateNodeForm);
 
   useEffect(() => {
     // TODO: This should only be executed when the form changes
     if (id) {
-      values = form?.getValues() || {};
-
-      const inputs = transferInputsArrayToObject(values.inputs);
+      const currentValues = form?.getValues() || values || {};
+      const inputs = transferInputsArrayToObject(currentValues.inputs);
 
       const nextValues = {
-        ...values,
+        ...currentValues,
         inputs,
         outputs: inputs,
       };

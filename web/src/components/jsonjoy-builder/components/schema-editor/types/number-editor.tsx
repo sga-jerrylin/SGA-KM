@@ -99,38 +99,44 @@ const NumberEditor: React.FC<NumberEditorProps> = ({
 
     // Handle removing a property (value is undefined)
     if (property === 'minimum') {
-      const { minimum: _, ...rest } = baseProperties;
-      onChange(rest as ObjectJSONSchema);
+      const nextProperties = { ...baseProperties };
+      delete nextProperties.minimum;
+      onChange(nextProperties as ObjectJSONSchema);
       return;
     }
 
     if (property === 'maximum') {
-      const { maximum: _, ...rest } = baseProperties;
-      onChange(rest as ObjectJSONSchema);
+      const nextProperties = { ...baseProperties };
+      delete nextProperties.maximum;
+      onChange(nextProperties as ObjectJSONSchema);
       return;
     }
 
     if (property === 'exclusiveMinimum') {
-      const { exclusiveMinimum: _, ...rest } = baseProperties;
-      onChange(rest as ObjectJSONSchema);
+      const nextProperties = { ...baseProperties };
+      delete nextProperties.exclusiveMinimum;
+      onChange(nextProperties as ObjectJSONSchema);
       return;
     }
 
     if (property === 'exclusiveMaximum') {
-      const { exclusiveMaximum: _, ...rest } = baseProperties;
-      onChange(rest as ObjectJSONSchema);
+      const nextProperties = { ...baseProperties };
+      delete nextProperties.exclusiveMaximum;
+      onChange(nextProperties as ObjectJSONSchema);
       return;
     }
 
     if (property === 'multipleOf') {
-      const { multipleOf: _, ...rest } = baseProperties;
-      onChange(rest as ObjectJSONSchema);
+      const nextProperties = { ...baseProperties };
+      delete nextProperties.multipleOf;
+      onChange(nextProperties as ObjectJSONSchema);
       return;
     }
 
     if (property === 'enum') {
-      const { enum: _, ...rest } = baseProperties;
-      onChange(rest as ObjectJSONSchema);
+      const nextProperties = { ...baseProperties };
+      delete nextProperties.enum;
+      onChange(nextProperties as ObjectJSONSchema);
       return;
     }
 

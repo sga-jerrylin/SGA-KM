@@ -1,24 +1,29 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import {
-  ZoomIn,
-  ZoomOut,
-  RotateCcw,
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import {
+  Eye,
+  EyeOff,
+  Info,
   Maximize2,
   Minimize2,
   MousePointer,
   Move,
-  Eye,
-  EyeOff,
-  Settings,
-  Info,
-  Play,
   Pause,
-  Zap
+  Play,
+  RotateCcw,
+  Settings,
+  Zap,
+  ZoomIn,
+  ZoomOut,
 } from 'lucide-react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 interface EnhancedGraphInteractionProps {
@@ -69,50 +74,25 @@ const EnhancedGraphInteraction: React.FC<EnhancedGraphInteractionProps> = ({
   enableAnimations = true,
   onToggleAnimations,
   animationDuration = 300,
-  onAnimationDurationChange
+  onAnimationDurationChange,
 }) => {
   const { t } = useTranslation();
-  const [showTooltip, setShowTooltip] = useState(false);
-  const [tooltipContent, setTooltipContent] = useState<any>(null);
   const [showSettings, setShowSettings] = useState(false);
-  const tooltipTimeoutRef = useRef<NodeJS.Timeout>();
-
-  // Handle node hover for tooltip
-  const handleNodeHover = useCallback((node: any, event?: MouseEvent) => {
-    if (tooltipTimeoutRef.current) {
-      clearTimeout(tooltipTimeoutRef.current);
-    }
-
-    if (node) {
-      setTooltipContent(node);
-      setShowTooltip(true);
-    } else {
-      tooltipTimeoutRef.current = setTimeout(() => {
-        setShowTooltip(false);
-        setTooltipContent(null);
-      }, 200);
-    }
-  }, []);
-
-  // Cleanup timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (tooltipTimeoutRef.current) {
-        clearTimeout(tooltipTimeoutRef.current);
-      }
-    };
-  }, []);
 
   const interactionModes = [
-    { value: 'select', icon: MousePointer, label: t('knowledgeGraph.selectMode') },
+    {
+      value: 'select',
+      icon: MousePointer,
+      label: t('knowledgeGraph.selectMode'),
+    },
     { value: 'pan', icon: Move, label: t('knowledgeGraph.panMode') },
-    { value: 'zoom', icon: ZoomIn, label: t('knowledgeGraph.zoomMode') }
+    { value: 'zoom', icon: ZoomIn, label: t('knowledgeGraph.zoomMode') },
   ];
 
   const layoutTypes = [
     { value: 'force', label: t('knowledgeGraph.forceLayout') },
     { value: 'circular', label: t('knowledgeGraph.circularLayout') },
-    { value: 'hierarchical', label: t('knowledgeGraph.hierarchicalLayout') }
+    { value: 'hierarchical', label: t('knowledgeGraph.hierarchicalLayout') },
   ];
 
   return (
@@ -130,8 +110,12 @@ const EnhancedGraphInteraction: React.FC<EnhancedGraphInteractionProps> = ({
                     <TooltipTrigger asChild>
                       <Button
                         size="sm"
-                        variant={interactionMode === mode.value ? "default" : "ghost"}
-                        onClick={() => onInteractionModeChange(mode.value as any)}
+                        variant={
+                          interactionMode === mode.value ? 'default' : 'ghost'
+                        }
+                        onClick={() =>
+                          onInteractionModeChange(mode.value as any)
+                        }
                         className="px-2 py-1 rounded-none first:rounded-l last:rounded-r"
                       >
                         <Icon className="w-3 h-3" />
@@ -150,7 +134,12 @@ const EnhancedGraphInteraction: React.FC<EnhancedGraphInteractionProps> = ({
             {/* Zoom Controls */}
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button size="sm" variant="ghost" onClick={onZoomIn} className="px-2 py-1">
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={onZoomIn}
+                  className="px-2 py-1"
+                >
                   <ZoomIn className="w-3 h-3" />
                 </Button>
               </TooltipTrigger>
@@ -161,7 +150,12 @@ const EnhancedGraphInteraction: React.FC<EnhancedGraphInteractionProps> = ({
 
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button size="sm" variant="ghost" onClick={onZoomOut} className="px-2 py-1">
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={onZoomOut}
+                  className="px-2 py-1"
+                >
                   <ZoomOut className="w-3 h-3" />
                 </Button>
               </TooltipTrigger>
@@ -172,7 +166,12 @@ const EnhancedGraphInteraction: React.FC<EnhancedGraphInteractionProps> = ({
 
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button size="sm" variant="ghost" onClick={onResetView} className="px-2 py-1">
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={onResetView}
+                  className="px-2 py-1"
+                >
                   <RotateCcw className="w-3 h-3" />
                 </Button>
               </TooltipTrigger>
@@ -186,22 +185,35 @@ const EnhancedGraphInteraction: React.FC<EnhancedGraphInteractionProps> = ({
             {/* Fullscreen Toggle */}
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button size="sm" variant="ghost" onClick={onToggleFullscreen} className="px-2 py-1">
-                  {isFullscreen ? <Minimize2 className="w-3 h-3" /> : <Maximize2 className="w-3 h-3" />}
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={onToggleFullscreen}
+                  className="px-2 py-1"
+                >
+                  {isFullscreen ? (
+                    <Minimize2 className="w-3 h-3" />
+                  ) : (
+                    <Maximize2 className="w-3 h-3" />
+                  )}
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>{isFullscreen ? t('knowledgeGraph.exitFullscreen') : t('knowledgeGraph.enterFullscreen')}</p>
+                <p>
+                  {isFullscreen
+                    ? t('knowledgeGraph.exitFullscreen')
+                    : t('knowledgeGraph.enterFullscreen')}
+                </p>
               </TooltipContent>
             </Tooltip>
 
             {/* Settings Toggle */}
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button 
-                  size="sm" 
-                  variant={showSettings ? "default" : "ghost"} 
-                  onClick={() => setShowSettings(!showSettings)} 
+                <Button
+                  size="sm"
+                  variant={showSettings ? 'default' : 'ghost'}
+                  onClick={() => setShowSettings(!showSettings)}
                   className="px-2 py-1"
                 >
                   <Settings className="w-3 h-3" />
@@ -218,8 +230,10 @@ const EnhancedGraphInteraction: React.FC<EnhancedGraphInteractionProps> = ({
         {showSettings && (
           <Card className="p-3 w-64">
             <div className="space-y-3">
-              <h4 className="font-medium text-sm">{t('knowledgeGraph.displaySettings')}</h4>
-              
+              <h4 className="font-medium text-sm">
+                {t('knowledgeGraph.displaySettings')}
+              </h4>
+
               {/* Layout Selection */}
               <div>
                 <label className="text-xs font-medium mb-1 block">
@@ -252,7 +266,11 @@ const EnhancedGraphInteraction: React.FC<EnhancedGraphInteractionProps> = ({
                       onClick={() => onToggleAnimations(!enableAnimations)}
                       className="px-1 py-0 h-6"
                     >
-                      {enableAnimations ? <Play className="w-3 h-3" /> : <Pause className="w-3 h-3" />}
+                      {enableAnimations ? (
+                        <Play className="w-3 h-3" />
+                      ) : (
+                        <Pause className="w-3 h-3" />
+                      )}
                     </Button>
                   </div>
 
@@ -267,7 +285,9 @@ const EnhancedGraphInteraction: React.FC<EnhancedGraphInteractionProps> = ({
                         max="1000"
                         step="50"
                         value={animationDuration}
-                        onChange={(e) => onAnimationDurationChange(Number(e.target.value))}
+                        onChange={(e) =>
+                          onAnimationDurationChange(Number(e.target.value))
+                        }
                         className="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                       />
                     </div>
@@ -278,25 +298,37 @@ const EnhancedGraphInteraction: React.FC<EnhancedGraphInteractionProps> = ({
               {/* Label Toggles */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs">{t('knowledgeGraph.nodeLabels')}</span>
+                  <span className="text-xs">
+                    {t('knowledgeGraph.nodeLabels')}
+                  </span>
                   <Button
                     size="sm"
                     variant="ghost"
                     onClick={() => onToggleNodeLabels(!showNodeLabels)}
                     className="px-1 py-0 h-6"
                   >
-                    {showNodeLabels ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
+                    {showNodeLabels ? (
+                      <Eye className="w-3 h-3" />
+                    ) : (
+                      <EyeOff className="w-3 h-3" />
+                    )}
                   </Button>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs">{t('knowledgeGraph.edgeLabels')}</span>
+                  <span className="text-xs">
+                    {t('knowledgeGraph.edgeLabels')}
+                  </span>
                   <Button
                     size="sm"
                     variant="ghost"
                     onClick={() => onToggleEdgeLabels(!showEdgeLabels)}
                     className="px-1 py-0 h-6"
                   >
-                    {showEdgeLabels ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
+                    {showEdgeLabels ? (
+                      <Eye className="w-3 h-3" />
+                    ) : (
+                      <EyeOff className="w-3 h-3" />
+                    )}
                   </Button>
                 </div>
               </div>
@@ -310,9 +342,13 @@ const EnhancedGraphInteraction: React.FC<EnhancedGraphInteractionProps> = ({
             <div className="flex items-center gap-2">
               <Info className="w-3 h-3 text-gray-500" />
               <div className="text-xs text-gray-600">
-                <span>{graphStats.visibleNodes}/{graphStats.totalNodes} nodes</span>
+                <span>
+                  {graphStats.visibleNodes}/{graphStats.totalNodes} nodes
+                </span>
                 <span className="mx-1">•</span>
-                <span>{graphStats.visibleEdges}/{graphStats.totalEdges} edges</span>
+                <span>
+                  {graphStats.visibleEdges}/{graphStats.totalEdges} edges
+                </span>
               </div>
             </div>
           </Card>
@@ -330,61 +366,82 @@ const EnhancedGraphInteraction: React.FC<EnhancedGraphInteractionProps> = ({
                     <Badge variant="outline" className="text-xs">
                       {t('knowledgeGraph.selected')}
                     </Badge>
-                    <span className="text-sm font-medium">{selectedNode.id}</span>
+                    <span className="text-sm font-medium">
+                      {selectedNode.id}
+                    </span>
                   </div>
-                  
+
                   {selectedNode.entity_type && (
                     <div className="text-xs">
-                      <span className="font-medium">{t('knowledgeGraph.entityType')}: </span>
+                      <span className="font-medium">
+                        {t('knowledgeGraph.entityType')}:{' '}
+                      </span>
                       <Badge variant="secondary" className="text-xs">
                         {selectedNode.entity_type}
                       </Badge>
                     </div>
                   )}
-                  
+
                   {selectedNode.pagerank && (
                     <div className="text-xs">
-                      <span className="font-medium">{t('knowledgeGraph.relevance')}: </span>
+                      <span className="font-medium">
+                        {t('knowledgeGraph.relevance')}:{' '}
+                      </span>
                       <span>{(selectedNode.pagerank * 100).toFixed(1)}%</span>
                     </div>
                   )}
-                  
+
                   {selectedNode.description && (
                     <div className="text-xs">
-                      <span className="font-medium">{t('common.description')}: </span>
-                      <p className="text-gray-600 mt-1 line-clamp-3">{selectedNode.description}</p>
+                      <span className="font-medium">
+                        {t('common.description')}:{' '}
+                      </span>
+                      <p className="text-gray-600 mt-1 line-clamp-3">
+                        {selectedNode.description}
+                      </p>
                     </div>
                   )}
-                  
-                  {selectedNode.communities && selectedNode.communities.length > 0 && (
-                    <div className="text-xs">
-                      <span className="font-medium">{t('knowledgeGraph.communities')}: </span>
-                      <div className="flex flex-wrap gap-1 mt-1">
-                        {selectedNode.communities.slice(0, 3).map((community: string, index: number) => (
-                          <Badge key={index} variant="outline" className="text-xs">
-                            {community}
-                          </Badge>
-                        ))}
-                        {selectedNode.communities.length > 3 && (
-                          <span className="text-xs text-gray-500">
-                            +{selectedNode.communities.length - 3} more
-                          </span>
-                        )}
+
+                  {selectedNode.communities &&
+                    selectedNode.communities.length > 0 && (
+                      <div className="text-xs">
+                        <span className="font-medium">
+                          {t('knowledgeGraph.communities')}:{' '}
+                        </span>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {selectedNode.communities
+                            .slice(0, 3)
+                            .map((community: string, index: number) => (
+                              <Badge
+                                key={index}
+                                variant="outline"
+                                className="text-xs"
+                              >
+                                {community}
+                              </Badge>
+                            ))}
+                          {selectedNode.communities.length > 3 && (
+                            <span className="text-xs text-gray-500">
+                              +{selectedNode.communities.length - 3} more
+                            </span>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
                 </div>
               )}
-              
+
               {hoveredNode && !selectedNode && (
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
                     <Badge variant="outline" className="text-xs">
                       {t('knowledgeGraph.hovered')}
                     </Badge>
-                    <span className="text-sm font-medium">{hoveredNode.id}</span>
+                    <span className="text-sm font-medium">
+                      {hoveredNode.id}
+                    </span>
                   </div>
-                  
+
                   {hoveredNode.entity_type && (
                     <div className="text-xs">
                       <Badge variant="secondary" className="text-xs">
@@ -392,10 +449,11 @@ const EnhancedGraphInteraction: React.FC<EnhancedGraphInteractionProps> = ({
                       </Badge>
                     </div>
                   )}
-                  
+
                   {hoveredNode.pagerank && (
                     <div className="text-xs text-gray-600">
-                      {t('knowledgeGraph.relevance')}: {(hoveredNode.pagerank * 100).toFixed(1)}%
+                      {t('knowledgeGraph.relevance')}:{' '}
+                      {(hoveredNode.pagerank * 100).toFixed(1)}%
                     </div>
                   )}
                 </div>

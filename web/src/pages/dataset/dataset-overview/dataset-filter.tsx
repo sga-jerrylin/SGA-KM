@@ -28,7 +28,6 @@ const DatasetFilter = (
     onOpenChange,
     active = LogTabs.FILE_LOGS,
     setActive,
-    ...rest
   } = props;
   const { t } = useTranslation();
   const filterCount = useMemo(() => {

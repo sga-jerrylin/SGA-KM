@@ -17,7 +17,7 @@ export const useNavigateToOtherPage = () => {
     navigate(`/knowledge/dataset/upload?id=${knowledgeId}`);
   }, [navigate, knowledgeId]);
 
-  const toChunk = useCallback((id: string) => {}, []);
+  const toChunk = useCallback(() => {}, []);
 
   return { linkToUploadPage, toChunk };
 };
