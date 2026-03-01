@@ -36,6 +36,7 @@ from api.db.services.document_service import DocumentService
 from common.file_utils import get_project_base_directory
 from common import settings
 from api.db.db_models import init_database_tables as init_web_db
+from api.db.km_models import init_km_tables  # KM-CUSTOM
 from api.db.init_data import init_web_data, init_superuser
 from common.versions import get_ragflow_version
 from common.config_utils import show_configs
@@ -101,6 +102,7 @@ if __name__ == '__main__':
 
     # init db
     init_web_db()
+    init_km_tables()  # KM-CUSTOM
     init_web_data()
     # init runtime config
     import argparse
@@ -139,22 +141,11 @@ if __name__ == '__main__':
         t = threading.Thread(target=update_progress, daemon=True)
         t.start()
 
-    def delayed_start_news_sync_scheduler():
-        """Start the news sync scheduler after a delay"""
-        try:
-            from api.db.services.news_sync_service import NewsSyncService
-            logging.info("Starting News Sync Scheduler...")
-            NewsSyncService.start_scheduler()
-        except Exception as e:
-            logging.error(f"Failed to start News Sync Scheduler: {e}")
-
     if RuntimeConfig.DEBUG:
         if os.environ.get("WERKZEUG_RUN_MAIN") == "true":
             threading.Timer(1.0, delayed_start_update_progress).start()
-            threading.Timer(2.0, delayed_start_news_sync_scheduler).start()
     else:
         threading.Timer(1.0, delayed_start_update_progress).start()
-        threading.Timer(2.0, delayed_start_news_sync_scheduler).start()
 
     # start http server
     try:

@@ -2,7 +2,7 @@ import { ElementDatum, Graph, IElementEvent } from '@antv/g6';
 import isEmpty from 'lodash/isEmpty';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import styles from './index.less';
+import styles from './index.module.less';
 
 const TooltipColorMap = {
   combo: 'red',

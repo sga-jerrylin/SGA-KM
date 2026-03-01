@@ -30,6 +30,8 @@ from rag.nlp.search import Dealer, index_name
 from common.float_utils import get_float
 from common import settings
 from common.doc_store.doc_store_base import OrderByExpr
+from common.graph_store import get_graph_store
+from common.misc_utils import thread_pool_exec
 
 
 class KGSearch(Dealer):
@@ -169,22 +171,45 @@ class KGSearch(Dealer):
         ents_from_query = self.get_relevant_ents_by_keywords(ents, filters, idxnms, kb_ids, emb_mdl, ent_sim_threshold)
         ents_from_types = self.get_relevant_ents_by_types(ty_kwds, filters, idxnms, kb_ids, 10000)
         rels_from_txt = self.get_relevant_relations_by_txt(qst, filters, idxnms, kb_ids, emb_mdl, rel_sim_threshold)
+
+        # KM-CUSTOM: NebulaGraph n-hop expansion (fallback to ES n_hop_with_weight below).
         nhop_pathes = defaultdict(dict)
-        for _, ent in ents_from_query.items():
-            nhops = ent.get("n_hop_ents", [])
-            if not isinstance(nhops, list):
-                logging.warning(f"Abnormal n_hop_ents: {nhops}")
-                continue
-            for nbr in nhops:
-                path = nbr["path"]
-                wts = nbr["weights"]
-                for i in range(len(path) - 1):
-                    f, t = path[i], path[i + 1]
-                    if (f, t) in nhop_pathes:
-                        nhop_pathes[(f, t)]["sim"] += ent["sim"] / (2 + i)
-                    else:
-                        nhop_pathes[(f, t)]["sim"] = ent["sim"] / (2 + i)
-                    nhop_pathes[(f, t)]["pagerank"] = wts[i]
+        graph_store = get_graph_store()
+        if graph_store and tenant_ids and kb_ids:
+            try:
+                space = graph_store.space_name(tenant_ids[0], kb_ids[0])
+                for ent_name, ent in ents_from_query.items():
+                    neighbors = await thread_pool_exec(graph_store.k_hop_neighbors, space, ent_name, 2, 50)
+                    for nb in neighbors:
+                        nb_name = nb.get("name")
+                        if not nb_name or nb_name == ent_name:
+                            continue
+                        pair = tuple(sorted([ent_name, nb_name]))
+                        score = ent["sim"] / 3.0
+                        if pair in nhop_pathes:
+                            nhop_pathes[pair]["sim"] += score
+                        else:
+                            nhop_pathes[pair]["sim"] = score
+                        nhop_pathes[pair]["pagerank"] = get_float(nb.get("rel_weight", 0.0)) or get_float(nb.get("pagerank", 0.0))
+            except Exception as e:
+                logging.warning("[GraphStore] n-hop expansion failed, fallback to ES field: %s", e)
+
+        if not nhop_pathes:
+            for _, ent in ents_from_query.items():
+                nhops = ent.get("n_hop_ents", [])
+                if not isinstance(nhops, list):
+                    logging.warning(f"Abnormal n_hop_ents: {nhops}")
+                    continue
+                for nbr in nhops:
+                    path = nbr["path"]
+                    wts = nbr["weights"]
+                    for i in range(len(path) - 1):
+                        f, t = path[i], path[i + 1]
+                        if (f, t) in nhop_pathes:
+                            nhop_pathes[(f, t)]["sim"] += ent["sim"] / (2 + i)
+                        else:
+                            nhop_pathes[(f, t)]["sim"] = ent["sim"] / (2 + i)
+                        nhop_pathes[(f, t)]["pagerank"] = wts[i]
 
         logging.info("Retrieved entities: {}".format(list(ents_from_query.keys())))
         logging.info("Retrieved relations: {}".format(list(rels_from_txt.keys())))

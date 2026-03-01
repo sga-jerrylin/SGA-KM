@@ -25,6 +25,7 @@ from api.db.services.task_service import has_canceled
 from common.exceptions import TaskCanceledException
 from common.misc_utils import get_uuid
 from common.connection_utils import timeout
+from common.graph_store import get_graph_store
 from rag.graphrag.entity_resolution import EntityResolution
 from rag.graphrag.general.community_reports_extractor import CommunityReportsExtractor
 from rag.graphrag.general.extractor import Extractor
@@ -496,9 +497,22 @@ async def merge_subgraph(
         new_graph = subgraph
         change.added_updated_nodes = set(new_graph.nodes())
         change.added_updated_edges = set(new_graph.edges())
+
+    # Keep tenant/kb metadata on graph for downstream services.
+    new_graph.graph["tenant_id"] = tenant_id
+    new_graph.graph["kb_id"] = kb_id
+
     pr = nx.pagerank(new_graph)
     for node_name, pagerank in pr.items():
         new_graph.nodes[node_name]["pagerank"] = pagerank
+
+    # KM-CUSTOM: Ensure graph space exists before syncing via set_graph().
+    graph_store = get_graph_store()
+    if graph_store:
+        try:
+            await thread_pool_exec(graph_store.ensure_space, tenant_id, kb_id)
+        except Exception as e:
+            logging.warning("[GraphStore] ensure_space failed tenant=%s kb=%s err=%s", tenant_id, kb_id, e)
 
     await set_graph(tenant_id, kb_id, embedding_model, new_graph, change, callback)
     now = asyncio.get_running_loop().time()

@@ -26,8 +26,8 @@ import numpy as np
 import xxhash
 from networkx.readwrite import json_graph
 
-from common.misc_utils import get_uuid
 from common.connection_utils import timeout
+from common.graph_store import get_graph_store
 from rag.nlp import rag_tokenizer, search
 from rag.utils.redis_conn import REDIS_CONN
 from common import settings
@@ -301,7 +301,7 @@ async def graph_node_to_chunk(kb_id, embd_mdl, ent_name, meta, chunks):
     global chat_limiter
     enable_timeout_assertion = os.environ.get("ENABLE_TIMEOUT_ASSERTION")
     chunk = {
-        "id": get_uuid(),
+        "id": xxhash.xxh64(f"{kb_id}:entity:{ent_name}".encode()).hexdigest(),
         "important_kwd": [ent_name],
         "title_tks": rag_tokenizer.tokenize(ent_name),
         "entity_kwd": ent_name,
@@ -312,6 +312,7 @@ async def graph_node_to_chunk(kb_id, embd_mdl, ent_name, meta, chunks):
         "source_id": meta["source_id"],
         "kb_id": kb_id,
         "available_int": 0,
+        "rank_flt": float(meta.get("pagerank", 0.0)),
     }
     chunk["content_sm_ltks"] = rag_tokenizer.fine_grained_tokenize(chunk["content_ltks"])
     ebd = get_embed_cache(embd_mdl.llm_name, ent_name)
@@ -353,8 +354,9 @@ async def get_relation(tenant_id, kb_id, from_ent_name, to_ent_name, size=1):
 
 async def graph_edge_to_chunk(kb_id, embd_mdl, from_ent_name, to_ent_name, meta, chunks):
     enable_timeout_assertion = os.environ.get("ENABLE_TIMEOUT_ASSERTION")
+    from_node, to_node = (from_ent_name, to_ent_name) if from_ent_name < to_ent_name else (to_ent_name, from_ent_name)
     chunk = {
-        "id": get_uuid(),
+        "id": xxhash.xxh64(f"{kb_id}:relation:{from_node}:{to_node}".encode()).hexdigest(),
         "from_entity_kwd": from_ent_name,
         "to_entity_kwd": to_ent_name,
         "knowledge_graph_kwd": "relation",
@@ -387,6 +389,17 @@ async def graph_edge_to_chunk(kb_id, embd_mdl, from_ent_name, to_ent_name, meta,
 
 
 async def does_graph_contains(tenant_id, kb_id, doc_id):
+    # KM-CUSTOM: check NebulaGraph first.
+    gs = get_graph_store()
+    if gs:
+        try:
+            space = gs.space_name(tenant_id, kb_id)
+            found = await thread_pool_exec(gs.has_doc_source, space, doc_id)
+            if found:
+                return True
+        except Exception as e:
+            logging.warning("[GraphStore] does_graph_contains fallback to ES: %s", e)
+
     # Get doc_ids of graph
     fields = ["source_id"]
     condition = {
@@ -417,6 +430,26 @@ async def get_graph_doc_ids(tenant_id, kb_id) -> list[str]:
 
 
 async def get_graph(tenant_id, kb_id, exclude_rebuild=None):
+    # KM-CUSTOM: prefer NebulaGraph as graph store.
+    gs = get_graph_store()
+    if gs:
+        try:
+            space = gs.space_name(tenant_id, kb_id)
+            if await thread_pool_exec(gs.node_count, space) > 0:
+                graph = await thread_pool_exec(gs.to_networkx, space)
+                if graph.number_of_nodes() > 0:
+                    graph.graph.setdefault("source_id", [])
+                    graph.graph["tenant_id"] = tenant_id
+                    graph.graph["kb_id"] = kb_id
+                    if not graph.graph["source_id"]:
+                        source_ids = set()
+                        for _, attrs in graph.nodes(data=True):
+                            source_ids.update(attrs.get("source_id", []))
+                        graph.graph["source_id"] = list(source_ids)
+                    return graph
+        except Exception as e:
+            logging.warning("[GraphStore] get_graph fallback to ES: %s", e)
+
     conds = {"fields": ["content_with_weight", "removed_kwd", "source_id"], "size": 1, "knowledge_graph_kwd": ["graph"]}
     res = await settings.retriever.search(conds, search.index_name(tenant_id), [kb_id])
     if not res.total == 0:
@@ -426,6 +459,8 @@ async def get_graph(tenant_id, kb_id, exclude_rebuild=None):
                     g = json_graph.node_link_graph(json.loads(res.field[id]["content_with_weight"]), edges="edges")
                     if "source_id" not in g.graph:
                         g.graph["source_id"] = res.field[id]["source_id"]
+                    g.graph["tenant_id"] = tenant_id
+                    g.graph["kb_id"] = kb_id
                 else:
                     g = await rebuild_graph(tenant_id, kb_id, exclude_rebuild)
                 return g
@@ -438,6 +473,75 @@ async def get_graph(tenant_id, kb_id, exclude_rebuild=None):
 async def set_graph(tenant_id: str, kb_id: str, embd_mdl, graph: nx.Graph, change: GraphChange, callback):
     global chat_limiter
     start = asyncio.get_running_loop().time()
+    graph.graph["tenant_id"] = tenant_id
+    graph.graph["kb_id"] = kb_id
+
+    # KM-CUSTOM: sync graph topology into NebulaGraph first.
+    gs = get_graph_store()
+    if gs:
+        try:
+            space = await thread_pool_exec(gs.ensure_space, tenant_id, kb_id)
+
+            if change.removed_nodes:
+                await thread_pool_exec(gs.delete_nodes, space, list(change.removed_nodes))
+            if change.removed_edges:
+                await thread_pool_exec(gs.delete_edges, space, list(change.removed_edges))
+
+            nodes_to_upsert = []
+            for node_name in change.added_updated_nodes:
+                if node_name not in graph.nodes:
+                    continue
+                attrs = graph.nodes[node_name]
+                source_ids = attrs.get("source_id", [])
+                if isinstance(source_ids, list):
+                    source_ids = ",".join(source_ids)
+                nodes_to_upsert.append(
+                    {
+                        "name": node_name,
+                        "entity_type": attrs.get("entity_type", ""),
+                        "description": attrs.get("description", ""),
+                        "source_ids": source_ids,
+                        "pagerank": float(attrs.get("pagerank", 0.0)),
+                        "rank": int(attrs.get("rank", 0)),
+                        "community_id": attrs.get("community_id", ""),
+                    }
+                )
+            if nodes_to_upsert:
+                await thread_pool_exec(gs.upsert_nodes, space, nodes_to_upsert)
+
+            edges_to_upsert = []
+            for from_name, to_name in change.added_updated_edges:
+                if not graph.has_edge(from_name, to_name):
+                    continue
+                attrs = graph.edges[from_name, to_name]
+                source_ids = attrs.get("source_id", [])
+                if isinstance(source_ids, list):
+                    source_ids = ",".join(source_ids)
+                keywords = attrs.get("keywords", [])
+                if isinstance(keywords, list):
+                    keywords = ",".join(keywords)
+                edges_to_upsert.append(
+                    {
+                        "from_name": from_name,
+                        "to_name": to_name,
+                        "description": attrs.get("description", ""),
+                        "keywords": keywords,
+                        "weight": float(attrs.get("weight", 0.0)),
+                        "source_ids": source_ids,
+                    }
+                )
+            if edges_to_upsert:
+                await thread_pool_exec(gs.upsert_edges, space, edges_to_upsert)
+
+            if callback:
+                callback(
+                    msg=(
+                        f"[GraphStore] NebulaGraph synced "
+                        f"{len(nodes_to_upsert)} nodes and {len(edges_to_upsert)} edges."
+                    )
+                )
+        except Exception as e:
+            logging.error("[GraphStore] set_graph Nebula sync failed: %s", e)
 
     await thread_pool_exec(
         settings.docStoreConn.delete,
@@ -485,7 +589,7 @@ async def set_graph(tenant_id: str, kb_id: str, embd_mdl, graph: nx.Graph, chang
 
     chunks = [
         {
-            "id": get_uuid(),
+            "id": xxhash.xxh64(f"{kb_id}:graph".encode()).hexdigest(),
             "content_with_weight": json.dumps(nx.node_link_data(graph, edges="edges"), ensure_ascii=False),
             "knowledge_graph_kwd": "graph",
             "kb_id": kb_id,
@@ -503,7 +607,7 @@ async def set_graph(tenant_id: str, kb_id: str, embd_mdl, graph: nx.Graph, chang
             subgraph.nodes[n]["source_id"] = [source]
         chunks.append(
             {
-                "id": get_uuid(),
+                "id": xxhash.xxh64(f"{kb_id}:subgraph:{source}".encode()).hexdigest(),
                 "content_with_weight": json.dumps(nx.node_link_data(subgraph, edges="edges"), ensure_ascii=False),
                 "knowledge_graph_kwd": "subgraph",
                 "kb_id": kb_id,

@@ -31,6 +31,7 @@ import { Routes } from '@/routes';
 import { rsaPsw } from '@/utils';
 import authorizationUtil from '@/utils/authorization-util';
 
+import { useBranding } from '@/hooks/use-branding';
 import { login } from '@/services/admin-service';
 
 import { BgSvg } from '../login-next/bg';
@@ -44,6 +45,7 @@ function AdminLogin() {
   const { t } = useTranslation('translation', { keyPrefix: 'login' });
   const { t: tAdmin } = useTranslation('translation', { keyPrefix: 'admin' });
   const { isLogin } = useAuth();
+  const { branding } = useBranding();
 
   const loginMutation = useMutation({
     mutationKey: ['adminLogin'],
@@ -137,13 +139,22 @@ function AdminLogin() {
 
         <div className="absolute top-3 left-0 w-full">
           <div className="absolute mt-12 ml-12 flex items-center">
-            <img className="size-8 mr-5" src="/logo.svg" alt="logo" />
-            <span className="text-xl font-bold">RAGFlow</span>
+            <img
+              className="size-8 mr-5"
+              src={branding.loginLogoUrl}
+              alt="logo"
+            />
+            <span className="text-xl font-bold">{branding.productName}</span>
           </div>
 
           <h1 className="mt-[6.5rem] text-4xl font-medium text-center mb-12">
-            {tAdmin('loginTitle')}
+            {branding.welcomeText || tAdmin('loginTitle')}
           </h1>
+          {branding.tagline && (
+            <p className="text-center text-lg text-muted-foreground -mt-8 mb-12">
+              {branding.tagline}
+            </p>
+          )}
         </div>
 
         <div className="flex items-center justify-center w-screen">

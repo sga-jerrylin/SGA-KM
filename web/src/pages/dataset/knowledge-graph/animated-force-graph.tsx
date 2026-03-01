@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import GraphLegend from './graph-legend';
 
-import styles from './index.less';
+import styles from './index.module.less';
 
 const TooltipColorMap = {
   combo: 'red',

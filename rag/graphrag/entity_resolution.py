@@ -31,6 +31,7 @@ from rag.llm.chat_model import Base as CompletionLLM
 from rag.graphrag.utils import perform_variable_replacements, chat_limiter, GraphChange
 from api.db.services.task_service import has_canceled
 from common.exceptions import TaskCanceledException
+from common.graph_store import get_graph_store
 
 from common.misc_utils import thread_pool_exec
 
@@ -94,6 +95,23 @@ class EntityResolution(Extractor):
 
         for node in nodes:
             node_clusters[graph.nodes[node].get('entity_type', '-')].append(node)
+
+        # KM-CUSTOM: Optionally expand candidates by entity type from NebulaGraph.
+        graph_store = get_graph_store()
+        if graph_store and graph.graph.get("tenant_id") and graph.graph.get("kb_id"):
+            try:
+                space = graph_store.space_name(graph.graph["tenant_id"], graph.graph["kb_id"])
+                for entity_type in entity_types:
+                    current = node_clusters.get(entity_type, [])
+                    if not any(n in subgraph_nodes for n in current):
+                        continue
+                    names = await thread_pool_exec(graph_store.get_entities_by_type, space, entity_type, 10000)
+                    existing = set(current)
+                    for name in names:
+                        if name not in existing:
+                            current.append(name)
+            except Exception as e:
+                logging.warning("[GraphStore] entity_resolution lookup fallback: %s", e)
 
         candidate_resolution = {entity_type: [] for entity_type in entity_types}
         for k, v in node_clusters.items():

@@ -5,6 +5,10 @@ import { NavLink, Outlet, useNavigate } from 'react-router';
 import { useMutation, useQuery } from '@tanstack/react-query';
 
 import {
+  LucideActivity,
+  LucideBrain,
+  LucideLayoutDashboard,
+  LucideListTree,
   LucideMonitor,
   LucideServerCrash,
   LucideSettings,
@@ -15,6 +19,7 @@ import {
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
+import { useBranding } from '@/hooks/use-branding';
 import { cn } from '@/lib/utils';
 import { Routes } from '@/routes';
 import { getSystemVersion, logout } from '@/services/admin-service';
@@ -29,6 +34,7 @@ const AdminNavigationLayout = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [, setCurrentUserInfo] = useContext(CurrentUserInfoContext);
+  const { branding } = useBranding();
 
   const { data: version } = useQuery({
     queryKey: ['admin/version'],
@@ -37,6 +43,26 @@ const AdminNavigationLayout = () => {
 
   const navItems = useMemo(
     () => [
+      {
+        path: Routes.AdminDashboard,
+        name: t('admin.dashboard', 'KM 仪表盘'),
+        icon: <LucideLayoutDashboard className="size-[1em]" />,
+      },
+      {
+        path: Routes.AdminPipeline,
+        name: t('admin.pipeline', '流水线监控'),
+        icon: <LucideListTree className="size-[1em]" />,
+      },
+      {
+        path: Routes.AdminMemories,
+        name: t('admin.memories', '记忆管理'),
+        icon: <LucideBrain className="size-[1em]" />,
+      },
+      {
+        path: Routes.AdminObservability,
+        name: t('admin.observability', '可观测性'),
+        icon: <LucideActivity className="size-[1em]" />,
+      },
       {
         path: Routes.AdminServices,
         name: t('admin.serviceStatus'),
@@ -98,7 +124,7 @@ const AdminNavigationLayout = () => {
     <main className="w-screen h-screen flex flex-row px-6 pt-12 pb-6 dark:*:focus-visible:ring-white">
       <aside className="w-72 mr-6 flex flex-col gap-6">
         <div className="flex items-center mb-6">
-          <img className="size-8 mr-5" src="/logo.svg" alt="logo" />
+          <img className="size-8 mr-5" src={branding.loginLogoUrl} alt="logo" />
           <span className="text-xl font-bold">{t('admin.title')}</span>
         </div>
 

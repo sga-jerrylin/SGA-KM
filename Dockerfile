@@ -100,6 +100,7 @@ RUN if [ -n "$PYPI_MIRROR" ]; then \
         cp "uv-${uv_arch}-unknown-linux-gnu/"* /usr/local/bin/ && \
         rm -rf "uv-${uv_arch}-unknown-linux-gnu"; \
     fi; \
+    export PATH=/root/.local/bin:$PATH && \
     uv python install 3.12
 
 ENV PYTHONDONTWRITEBYTECODE=1 DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1
@@ -187,12 +188,12 @@ RUN --mount=type=cache,id=ragflow_uv,target=/root/.cache/uv,sharing=locked \
     if [ -n "$PYPI_MIRROR" ]; then \
         mirror_base="${PYPI_MIRROR%/simple}"; \
         mirror_base="${mirror_base%/}"; \
-        sed -i "s|https://pypi.tuna.tsinghua.edu.cn|${mirror_base}|g" uv.lock; \
-        sed -i "s|https://pypi.org|${mirror_base}|g" uv.lock; \
+        sed -i "s|https://pypi.tuna.tsinghua.edu.cn|${mirror_base}|g" uv.lock pyproject.toml; \
+        sed -i "s|https://pypi.org|${mirror_base}|g" uv.lock pyproject.toml; \
     elif [ "$NEED_MIRROR" == "1" ]; then \
         sed -i 's|pypi.org|pypi.tuna.tsinghua.edu.cn|g' uv.lock; \
     else \
-        sed -i 's|pypi.tuna.tsinghua.edu.cn|pypi.org|g' uv.lock; \
+        sed -i 's|pypi.tuna.tsinghua.edu.cn|pypi.org|g' uv.lock pyproject.toml; \
     fi; \
     uv sync --python 3.12 --frozen && \
     # Ensure pip is available in the venv for runtime package installation (fixes #12651)

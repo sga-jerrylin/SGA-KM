@@ -30,7 +30,7 @@ services:
       timeout: 10s
       retries: 120
     networks:
-      - ragflow
+      - km
     restart: unless-stopped
 
   opensearch01:
@@ -66,7 +66,7 @@ services:
       timeout: 10s
       retries: 120
     networks:
-      - ragflow
+      - km
     restart: unless-stopped
 
   infinity:
@@ -88,7 +88,7 @@ services:
         soft: 500000
         hard: 500000
     networks:
-      - ragflow
+      - km
     healthcheck:
       test: ["CMD", "curl", "http://localhost:23820/admin/node/current"]
       interval: 10s
@@ -118,7 +118,7 @@ services:
       start_period: 30s
       timeout: 10s
     networks:
-      - ragflow
+      - km
     restart: unless-stopped
 
   seekdb:
@@ -142,7 +142,7 @@ services:
       retries: 60
       timeout: 5s
     networks:
-      - ragflow
+      - km
     restart: unless-stopped
 
   sandbox-executor-manager:
@@ -156,7 +156,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
-      - ragflow
+      - km
     security_opt:
       - no-new-privileges:true
     environment:
@@ -171,6 +171,99 @@ services:
       interval: 10s
       timeout: 10s
       retries: 120
+    restart: unless-stopped
+
+  nebula-metad:
+    profiles:
+      - nebula
+    image: vesoft/nebula-metad:v3.8.0
+    environment:
+      - USER=root
+      - TZ=${TZ:-UTC}
+    command:
+      - --meta_server_addrs=nebula-metad:9559
+      - --local_ip=nebula-metad
+      - --ws_ip=nebula-metad
+      - --port=9559
+      - --ws_http_port=19559
+      - --data_path=/data/meta
+      - --log_dir=/logs
+      - --v=0
+      - --minloglevel=0
+    volumes:
+      - nebula_meta_data:/data/meta
+      - nebula_meta_logs:/logs
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://nebula-metad:19559/status"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+    networks:
+      - km
+    restart: unless-stopped
+
+  nebula-storaged:
+    profiles:
+      - nebula
+    image: vesoft/nebula-storaged:v3.8.0
+    environment:
+      - USER=root
+      - TZ=${TZ:-UTC}
+    command:
+      - --meta_server_addrs=nebula-metad:9559
+      - --local_ip=nebula-storaged
+      - --ws_ip=nebula-storaged
+      - --port=9779
+      - --ws_http_port=19779
+      - --data_path=/data/storage
+      - --log_dir=/logs
+      - --v=0
+      - --minloglevel=0
+    depends_on:
+      nebula-metad:
+        condition: service_healthy
+    volumes:
+      - nebula_storage_data:/data/storage
+      - nebula_storage_logs:/logs
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://nebula-storaged:19779/status"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+    networks:
+      - km
+    restart: unless-stopped
+
+  nebula-graphd:
+    profiles:
+      - nebula
+    image: vesoft/nebula-graphd:v3.8.0
+    environment:
+      - USER=root
+      - TZ=${TZ:-UTC}
+    command:
+      - --meta_server_addrs=nebula-metad:9559
+      - --local_ip=nebula-graphd
+      - --ws_ip=nebula-graphd
+      - --port=9669
+      - --ws_http_port=19669
+      - --log_dir=/logs
+      - --v=0
+      - --minloglevel=0
+    depends_on:
+      nebula-storaged:
+        condition: service_healthy
+    ports:
+      - ${NEBULA_GRAPHD_PORT:-19669}:9669
+    volumes:
+      - nebula_graphd_logs:/logs
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://nebula-graphd:19669/status"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+    networks:
+      - km
     restart: unless-stopped
 
   mysql:
@@ -193,7 +286,7 @@ services:
       - mysql_data:/var/lib/mysql
       - ./init.sql:/data/application/init.sql
     networks:
-      - ragflow
+      - km
     healthcheck:
       test: ["CMD", "mysqladmin" ,"ping", "-uroot", "-p${MYSQL_PASSWORD}"]
       interval: 10s
@@ -214,7 +307,7 @@ services:
     volumes:
       - minio_data:/data
     networks:
-      - ragflow
+      - km
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
@@ -232,7 +325,7 @@ services:
     volumes:
       - redis_data:/data
     networks:
-      - ragflow
+      - km
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
@@ -252,7 +345,7 @@ services:
     volumes:
       - ../models:/data
     networks:
-      - ragflow
+      - km
     command: ["--model-id", "/data/${TEI_MODEL}", "--auto-truncate"]
     restart: unless-stopped
 
@@ -268,7 +361,7 @@ services:
     volumes:
       - ../models:/data
     networks:
-      - ragflow
+      - km
     command: ["--model-id", "/data/${TEI_MODEL}", "--auto-truncate"]
     deploy:
       resources:
@@ -298,7 +391,7 @@ services:
       timeout: 10s
       retries: 120
     networks:
-      - ragflow
+      - km
     restart: unless-stopped
 
 
@@ -323,11 +416,21 @@ volumes:
     driver: local
   kibana_data:
     driver: local
+  nebula_meta_data:
+    driver: local
+  nebula_meta_logs:
+    driver: local
+  nebula_storage_data:
+    driver: local
+  nebula_storage_logs:
+    driver: local
+  nebula_graphd_logs:
+    driver: local
   uv_tools_data:
     driver: local
   venv_data:
     driver: local
 
 networks:
-  ragflow:
+  km:
     driver: bridge

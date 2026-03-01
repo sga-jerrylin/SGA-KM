@@ -14,13 +14,15 @@
 #  limitations under the License.
 #
 
+import base64
+import io
 import secrets
 import logging
 from typing import Any
 
 from common.time_utils import current_timestamp, datetime_format
 from datetime import datetime
-from flask import Blueprint, Response, request
+from flask import Blueprint, Response, request, send_file
 from flask_login import current_user, login_required, logout_user
 
 from auth import login_verify, login_admin, check_admin_auth
@@ -693,5 +695,141 @@ def test_sandbox_connection():
         return success_response(res)
     except AdminException as e:
         return error_response(str(e), 400)
+    except Exception as e:
+        return error_response(str(e), 500)
+
+
+# ── KM-CUSTOM: Branding endpoints ──────────────────────────────────
+
+BRANDING_KEYS = {
+    "product_name": ("branding.product_name", "KM"),
+    "welcome_text": ("branding.welcome_text", ""),
+    "tagline": ("branding.tagline", ""),
+}
+LOGO_TYPES = ("login", "home")
+MAX_LOGO_SIZE = 512 * 1024  # 512KB
+
+
+@admin_bp.route("/branding", methods=["GET"])
+def get_branding():
+    """Public endpoint: returns branding config (no auth required)."""
+    try:
+        from api.db.services.system_setting_service import SystemSettingService
+
+        result = {}
+        for field, (key, default) in BRANDING_KEYS.items():
+            result[field] = SystemSettingService.get_value(key, default)
+
+        for logo_type in LOGO_TYPES:
+            key = f"branding.{logo_type}_logo"
+            result[f"has_{logo_type}_logo"] = SystemSettingService.get_value(key) is not None
+
+        return success_response(result)
+    except Exception as e:
+        return error_response(str(e), 500)
+
+
+@admin_bp.route("/branding/logo/<logo_type>", methods=["GET"])
+def get_branding_logo(logo_type: str):
+    """Public endpoint: serves a logo image."""
+    if logo_type not in LOGO_TYPES:
+        return error_response(f"Invalid logo type: {logo_type}", 400)
+
+    try:
+        from api.db.services.system_setting_service import SystemSettingService
+
+        key = f"branding.{logo_type}_logo"
+        data_uri = SystemSettingService.get_value(key)
+        if not data_uri:
+            return Response(status=404)
+
+        # Parse data URI: "data:<mime>;base64,<data>"
+        header, encoded = data_uri.split(",", 1)
+        mime_type = header.split(":")[1].split(";")[0]
+        image_bytes = base64.b64decode(encoded)
+
+        return send_file(
+            io.BytesIO(image_bytes),
+            mimetype=mime_type,
+            max_age=300,
+        )
+    except Exception as e:
+        logging.exception("get_branding_logo error")
+        return error_response(str(e), 500)
+
+
+@admin_bp.route("/branding", methods=["PUT"])
+@login_required
+@check_admin_auth
+def update_branding():
+    """Admin endpoint: update branding text settings."""
+    try:
+        from api.db.services.system_setting_service import SystemSettingService
+
+        data = request.get_json()
+        if not data:
+            return error_response("Request body is required", 400)
+
+        updated = {}
+        for field, (key, _default) in BRANDING_KEYS.items():
+            if field in data:
+                value = str(data[field]).strip()
+                SystemSettingService.set_value(key, value)
+                updated[field] = value
+
+        return success_response(updated, "Branding updated successfully")
+    except Exception as e:
+        return error_response(str(e), 500)
+
+
+@admin_bp.route("/branding/logo/<logo_type>", methods=["POST"])
+@login_required
+@check_admin_auth
+def upload_branding_logo(logo_type: str):
+    """Admin endpoint: upload a logo image (as base64 data URI in JSON body)."""
+    if logo_type not in LOGO_TYPES:
+        return error_response(f"Invalid logo type: {logo_type}", 400)
+
+    try:
+        from api.db.services.system_setting_service import SystemSettingService
+
+        data = request.get_json()
+        if not data or "logo" not in data:
+            return error_response("Field 'logo' is required (data URI)", 400)
+
+        data_uri = data["logo"]
+        if not data_uri.startswith("data:image/"):
+            return error_response("Logo must be a data URI starting with 'data:image/'", 400)
+
+        # Validate size
+        _header, encoded = data_uri.split(",", 1)
+        raw_size = len(base64.b64decode(encoded))
+        if raw_size > MAX_LOGO_SIZE:
+            return error_response(f"Logo exceeds maximum size of {MAX_LOGO_SIZE // 1024}KB", 400)
+
+        key = f"branding.{logo_type}_logo"
+        SystemSettingService.set_value(key, data_uri)
+
+        return success_response({"type": logo_type}, "Logo uploaded successfully")
+    except Exception as e:
+        logging.exception("upload_branding_logo error")
+        return error_response(str(e), 500)
+
+
+@admin_bp.route("/branding/logo/<logo_type>", methods=["DELETE"])
+@login_required
+@check_admin_auth
+def delete_branding_logo(logo_type: str):
+    """Admin endpoint: delete a custom logo (revert to default)."""
+    if logo_type not in LOGO_TYPES:
+        return error_response(f"Invalid logo type: {logo_type}", 400)
+
+    try:
+        from api.db.services.system_setting_service import SystemSettingService
+
+        key = f"branding.{logo_type}_logo"
+        SystemSettingService.set_value(key, None)
+
+        return success_response({"type": logo_type}, "Logo deleted successfully")
     except Exception as e:
         return error_response(str(e), 500)

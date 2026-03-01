@@ -13,6 +13,7 @@ import { LanguageList, LanguageMap, ThemeEnum } from '@/constants/common';
 import { useChangeLanguage } from '@/hooks/logic-hooks';
 import { useNavigatePage } from '@/hooks/logic-hooks/navigate-hooks';
 import { useNavigateWithFromState } from '@/hooks/route-hook';
+import { useBranding } from '@/hooks/use-branding';
 import { useFetchUserInfo } from '@/hooks/use-user-setting-request';
 import { Routes } from '@/routes';
 import { camelCase } from 'lodash';
@@ -51,6 +52,7 @@ export function Header() {
   const { pathname } = useLocation();
   const navigate = useNavigateWithFromState();
   const { navigateToOldProfile } = useNavigatePage();
+  const { branding } = useBranding();
 
   const changeLanguage = useChangeLanguage();
   const { setTheme, theme } = useTheme();
@@ -131,7 +133,7 @@ export function Header() {
     <section className="py-5 px-10 flex justify-between items-center ">
       <div className="flex items-center gap-4">
         <img
-          src={'/logo.svg'}
+          src={branding.homeLogoUrl}
           alt="logo"
           className="size-10 mr-[12] cursor-pointer"
           onClick={handleLogoClick}

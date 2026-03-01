@@ -51,6 +51,8 @@ export enum Routes {
   Result = '/result',
   ResultView = `${Chunk}${Result}`,
   KnowledgeGraph = '/knowledge-graph',
+  KnowledgeGraphShare = '/knowledge-graph/share',
+  GraphShare = '/graph',
   AgentLogPage = '/agent-log-page',
   AgentShare = '/agent/share',
   ChatShare = `${Chats}/share`,
@@ -66,6 +68,11 @@ export enum Routes {
   AdminWhitelist = `${Admin}/whitelist`,
   AdminRoles = `${Admin}/roles`,
   AdminMonitoring = `${Admin}/monitoring`,
+  AdminSettings = `${Admin}/settings`,
+  AdminDashboard = `${Admin}/dashboard`,
+  AdminPipeline = `${Admin}/pipeline`,
+  AdminMemories = `${Admin}/memories`,
+  AdminObservability = `${Admin}/observability`,
 }
 
 const defaultRouteFallback = (
@@ -130,6 +137,11 @@ const routeConfigOptions = [
   {
     path: '/document/:id',
     Component: () => import('@/pages/document-viewer'),
+    layout: false,
+  },
+  {
+    path: '/graph/:id',
+    Component: () => import('@/pages/dataset/knowledge-graph/share'),
     layout: false,
   },
   {
@@ -418,6 +430,26 @@ const routeConfigOptions = [
 
             children: [
               {
+                path: Routes.Admin,
+                element: <Navigate to={Routes.AdminDashboard} replace />,
+              },
+              {
+                path: Routes.AdminDashboard,
+                Component: () => import('@/pages/admin/dashboard'),
+              },
+              {
+                path: Routes.AdminPipeline,
+                Component: () => import('@/pages/admin/pipeline-monitor'),
+              },
+              {
+                path: Routes.AdminMemories,
+                Component: () => import('@/pages/admin/memories'),
+              },
+              {
+                path: Routes.AdminObservability,
+                Component: () => import('@/pages/admin/observability'),
+              },
+              {
                 path: Routes.AdminServices,
                 Component: () => import('@/pages/admin/service-status'),
               },
@@ -428,6 +460,10 @@ const routeConfigOptions = [
               {
                 path: Routes.AdminSandboxSettings,
                 Component: () => import('@/pages/admin/sandbox-settings'),
+              },
+              {
+                path: Routes.AdminSettings,
+                Component: () => import('@/pages/admin/settings'),
               },
               ...(IS_ENTERPRISE
                 ? [

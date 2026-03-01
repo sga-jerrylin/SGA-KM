@@ -9,7 +9,7 @@ services:
     build:
       context: ..
       dockerfile: Dockerfile
-    container_name: ragflow-server
+    container_name: km-server
     command: ["--enable-adminserver"]
     ports:
       - ${SVR_HTTP_PORT}:9380
@@ -34,7 +34,7 @@ services:
       - HF_ENDPOINT=${HF_ENDPOINT-}
       - MACOS=${MACOS-}
     networks:
-      - ragflow
+      - km
     restart: on-failure
     shm_size: '4gb'
     extra_hosts:

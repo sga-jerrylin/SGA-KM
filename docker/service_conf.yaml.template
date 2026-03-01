@@ -48,6 +48,13 @@ seekdb:
     password: '${SEEKDB_PASSWORD:-infini_rag_flow}'
     host: '${SEEKDB_HOST:-seekdb}'
     port: ${SEEKDB_PORT:-2881}
+nebula:
+  graphd_host: '${NEBULA_GRAPHD_HOST:-nebula-graphd}'
+  graphd_port: ${NEBULA_GRAPHD_PORT:-9669}
+  user: '${NEBULA_USER:-root}'
+  password: '${NEBULA_PASSWORD:-nebula}'
+  max_connection_pool_size: 50
+  timeout_ms: 60000
 redis:
   db: 1
   username: '${REDIS_USERNAME:-}'
