@@ -231,10 +231,30 @@ function ensure_docling() {
       || uv pip install -i https://pypi.tuna.tsinghua.edu.cn/simple --extra-index-url https://pypi.org/simple --no-cache-dir "docling${DOCLING_PIN}"
 }
 
+function bootstrap_db_tables() {
+    echo "Bootstrapping database tables..."
+    "$PY" - <<'PY'
+from api.db.db_models import init_database_tables
+
+init_database_tables()
+
+try:
+    from api.db.km_models import init_km_tables
+except ModuleNotFoundError:
+    init_km_tables = None
+
+if init_km_tables:
+    init_km_tables()
+
+print("[db] database tables initialized")
+PY
+}
+
 # -----------------------------------------------------------------------------
 # Start components based on flags
 # -----------------------------------------------------------------------------
 ensure_docling
+bootstrap_db_tables
 
 if [[ "${ENABLE_WEBSERVER}" -eq 1 ]]; then
     echo "Starting nginx..."
@@ -289,3 +309,4 @@ if [[ "${ENABLE_TASKEXECUTOR}" -eq 1 ]]; then
 fi
 
 wait
+

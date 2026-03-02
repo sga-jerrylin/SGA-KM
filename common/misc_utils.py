@@ -18,6 +18,7 @@ import asyncio
 import base64
 import functools
 import hashlib
+import importlib.util
 import logging
 import os
 import subprocess
@@ -105,8 +106,14 @@ def once(func):
 
 @once
 def pip_install_torch():
-    device = os.getenv("DEVICE", "cpu")
-    if device=="cpu":
+    device = os.getenv("DEVICE", "cpu").lower()
+    if device == "cpu":
+        return
+    auto_install_torch = os.getenv("AUTO_INSTALL_TORCH", "1").strip().lower()
+    if auto_install_torch not in {"1", "true", "yes", "on"}:
+        logging.info("Skip pytorch auto-install because AUTO_INSTALL_TORCH is disabled.")
+        return
+    if importlib.util.find_spec("torch") is not None:
         return
     logging.info("Installing pytorch")
     pkg_names = ["torch>=2.5.0,<3.0.0"]
@@ -131,3 +138,4 @@ async def thread_pool_exec(func, *args, **kwargs):
         func = functools.partial(func, *args, **kwargs)
         return await loop.run_in_executor(_thread_pool_executor(), func)
     return await loop.run_in_executor(_thread_pool_executor(), func, *args)
+

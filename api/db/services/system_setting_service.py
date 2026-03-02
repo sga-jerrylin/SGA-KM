@@ -75,4 +75,5 @@ class SystemSettingService(CommonService):
 
     @classmethod
     def get_global_llm_enabled(cls):
-        return cls.get_bool("global_llm_enabled", settings.GLOBAL_LLM_ENABLED)
+        default_enabled = getattr(settings, "GLOBAL_LLM_ENABLED", True)
+        return cls.get_bool("global_llm_enabled", default_enabled)
