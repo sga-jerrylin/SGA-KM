@@ -1,0 +1,212 @@
+var e = Object.defineProperty,
+  a = Object.defineProperties,
+  r = Object.getOwnPropertyDescriptors,
+  t = Object.getOwnPropertySymbols,
+  o = Object.prototype.hasOwnProperty,
+  s = Object.prototype.propertyIsEnumerable,
+  n = (a, r, t) =>
+    r in a
+      ? e(a, r, { enumerable: !0, configurable: !0, writable: !0, value: t })
+      : (a[r] = t);
+import { h as c, v as l } from './chat-vfAgVoQX.js';
+import { b5 as g, b4 as p, b3 as u, b6 as y } from './lucide-react-B0vpjdIH.js';
+import { j as i } from './react-Clxusn8M.js';
+var b = ((e) => ((e.Python = 'python'), (e.Javascript = 'javascript'), e))(
+  b || {},
+);
+const v = {
+  python:
+    'def main(arg1: str, arg2: str) -> str:\n    return f"result: {arg1 + arg2}"\n',
+  javascript:
+    "const axios = require('axios');\nasync function main({}) {\n  try {\n    const response = await axios.get('https://github.com/infiniflow/ragflow');\n    return 'Body:' + response.data;\n  } catch (error) {\n    return 'Error:' + error.message;\n  }\n}",
+};
+var h = ((e) => (
+  (e.SysQuery = 'sys.query'),
+  (e.SysUserId = 'sys.user_id'),
+  (e.SysConversationTurns = 'sys.conversation_turns'),
+  (e.SysFiles = 'sys.files'),
+  (e.SysHistory = 'sys.history'),
+  e
+))(h || {});
+const m = '{sys.query}',
+  d = Object.keys(l).reduce((e, a) => ((e[a] = c()), e), {}),
+  S =
+    ((E = ((e, a) => {
+      for (var r in a || (a = {})) o.call(a, r) && n(e, r, a[r]);
+      if (t) for (var r of t(a)) s.call(a, r) && n(e, r, a[r]);
+      return e;
+    })({}, d)),
+    a(
+      E,
+      r({
+        temperature: 0.1,
+        top_p: 0.3,
+        frequency_penalty: 0.7,
+        presence_penalty: 0.4,
+        max_tokens: 256,
+      }),
+    ));
+var E,
+  f = ((e) => (
+    (e.AgentCanvas = 'agent_canvas'),
+    (e.DataflowCanvas = 'dataflow_canvas'),
+    e
+  ))(f || {}),
+  x = ((e) => ((e.Category = 'category'), e))(x || {}),
+  j = ((e) => (
+    (e.Begin = 'File'),
+    (e.Note = 'Note'),
+    (e.Parser = 'Parser'),
+    (e.Tokenizer = 'Tokenizer'),
+    (e.Splitter = 'Splitter'),
+    (e.HierarchicalMerger = 'HierarchicalMerger'),
+    (e.Extractor = 'Extractor'),
+    e
+  ))(j || {}),
+  w = ((e) => (
+    (e.Begin = 'Begin'),
+    (e.Retrieval = 'Retrieval'),
+    (e.Categorize = 'Categorize'),
+    (e.Message = 'Message'),
+    (e.RewriteQuestion = 'RewriteQuestion'),
+    (e.DuckDuckGo = 'DuckDuckGo'),
+    (e.Wikipedia = 'Wikipedia'),
+    (e.PubMed = 'PubMed'),
+    (e.ArXiv = 'ArXiv'),
+    (e.Google = 'Google'),
+    (e.Bing = 'Bing'),
+    (e.GoogleScholar = 'GoogleScholar'),
+    (e.GitHub = 'GitHub'),
+    (e.ExeSQL = 'ExeSQL'),
+    (e.Switch = 'Switch'),
+    (e.WenCai = 'WenCai'),
+    (e.YahooFinance = 'YahooFinance'),
+    (e.Note = 'Note'),
+    (e.Crawler = 'Crawler'),
+    (e.Invoke = 'Invoke'),
+    (e.Email = 'Email'),
+    (e.Iteration = 'Iteration'),
+    (e.IterationStart = 'IterationItem'),
+    (e.Code = 'CodeExec'),
+    (e.WaitingDialogue = 'WaitingDialogue'),
+    (e.Agent = 'Agent'),
+    (e.Tool = 'Tool'),
+    (e.TavilySearch = 'TavilySearch'),
+    (e.TavilyExtract = 'TavilyExtract'),
+    (e.UserFillUp = 'UserFillUp'),
+    (e.StringTransform = 'StringTransform'),
+    (e.SearXNG = 'SearXNG'),
+    (e.PDFGenerator = 'PDFGenerator'),
+    (e.Placeholder = 'Placeholder'),
+    (e.DataOperations = 'DataOperations'),
+    (e.ListOperations = 'ListOperations'),
+    (e.VariableAssigner = 'VariableAssigner'),
+    (e.VariableAggregator = 'VariableAggregator'),
+    (e.File = 'File'),
+    (e.Parser = 'Parser'),
+    (e.Tokenizer = 'Tokenizer'),
+    (e.Splitter = 'Splitter'),
+    (e.HierarchicalMerger = 'HierarchicalMerger'),
+    (e.Extractor = 'Extractor'),
+    (e.Loop = 'Loop'),
+    (e.LoopStart = 'LoopItem'),
+    (e.ExitLoop = 'ExitLoop'),
+    (e.ExcelProcessor = 'ExcelProcessor'),
+    e
+  ))(w || {}),
+  P = ((e) => (
+    (e.Equal = '='),
+    (e.NotEqual = '≠'),
+    (e.GreatThan = '>'),
+    (e.GreatEqual = '≥'),
+    (e.LessThan = '<'),
+    (e.LessEqual = '≤'),
+    (e.Contains = 'contains'),
+    (e.NotContains = 'not contains'),
+    (e.StartWith = 'start with'),
+    (e.EndWith = 'end with'),
+    (e.Empty = 'empty'),
+    (e.NotEmpty = 'not empty'),
+    (e.In = 'in'),
+    (e.NotIn = 'not in'),
+    e
+  ))(P || {});
+const k = [
+    { value: '=', label: 'equal', icon: 'equal' },
+    { value: '≠', label: 'notEqual', icon: 'not-equals' },
+    { value: '>', label: 'gt', icon: 'Less' },
+    { value: '≥', label: 'ge', icon: 'Greater-or-equal' },
+    { value: '<', label: 'lt', icon: 'Less' },
+    { value: '≤', label: 'le', icon: 'less-or-equal' },
+    { value: 'contains', label: 'contains', icon: 'Contains' },
+    { value: 'not contains', label: 'notContains', icon: 'not-contains' },
+    { value: 'start with', label: 'startWith', icon: 'list-start' },
+    { value: 'end with', label: 'endWith', icon: 'list-end' },
+    { value: 'empty', label: 'empty', icon: i.jsx(u, { className: 'size-4' }) },
+    {
+      value: 'not empty',
+      label: 'notEmpty',
+      icon: i.jsx(p, { className: 'size-4' }),
+    },
+    { value: 'in', label: 'in', icon: i.jsx(g, { className: 'size-4' }) },
+    {
+      value: 'not in',
+      label: 'notIn',
+      icon: i.jsx(y, { className: 'size-4' }),
+    },
+  ],
+  C = 'structured';
+var O = ((e) => (
+    (e.String = 'string'),
+    (e.Number = 'number'),
+    (e.Boolean = 'boolean'),
+    (e.Array = 'array'),
+    (e.Object = 'object'),
+    e
+  ))(O || {}),
+  T = ((e) => ((e.And = 'and'), (e.Or = 'or'), e))(T || {});
+const G = [
+  'hs256',
+  'hs384',
+  'hs512',
+  'rs256',
+  'rs384',
+  'rs512',
+  'es256',
+  'es384',
+  'es512',
+  'ps256',
+  'ps384',
+  'ps512',
+  'none',
+];
+var I = ((e) => (
+  (e.Conversational = 'conversational'),
+  (e.Task = 'task'),
+  (e.Webhook = 'Webhook'),
+  e
+))(I || {});
+const N = {
+  mode: 'conversational',
+  prologue: "Hi! I'm your assistant. What can I do for you?",
+};
+export {
+  I as A,
+  f as a,
+  C as b,
+  v as C,
+  P as c,
+  j as D,
+  T as d,
+  x as e,
+  h as f,
+  S as g,
+  m as h,
+  N as i,
+  O as J,
+  w as O,
+  b as P,
+  k as S,
+  G as W,
+};
+//# sourceMappingURL=agent-DNsAG7Cr.js.map

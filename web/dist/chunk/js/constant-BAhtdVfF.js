@@ -1,0 +1,2 @@
+import{R as r}from"./knowledge-Dd5ClXAK.js";const a={[r.UNSTART]:{label:"UNSTART",color:"rgba(var(--accent-primary))"},[r.RUNNING]:{label:"Parsing",color:"var(--team-member)"},[r.CANCEL]:{label:"CANCEL",color:"rgba(var(--state-warning))"},[r.DONE]:{label:"SUCCESS",color:"rgba(var(--state-success))"},[r.FAIL]:{label:"FAIL",color:"rgba(var(--state-error))"}};export{a as R};
+//# sourceMappingURL=constant-BAhtdVfF.js.map

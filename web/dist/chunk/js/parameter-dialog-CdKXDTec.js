@@ -1,0 +1,2 @@
+import{j as e}from"./react-Clxusn8M.js";import{M as o}from"./common-hooks-xISUJ5g6.js";import{D as s}from"./index-CsRjWUXO.js";import{d as r}from"./use-get-begin-query-C5gK4wZ4.js";function t({ok:t,data:a}){return e.jsx(o,{open:!0,title:"Parameter",closable:!1,showfooter:!1,maskClosable:!1,children:e.jsx("div",{className:"mb-8",children:e.jsx(s,{parameters:r(a),ok:t,isNext:!1,btnText:"Submit"})})})}export{t as P};
+//# sourceMappingURL=parameter-dialog-CdKXDTec.js.map

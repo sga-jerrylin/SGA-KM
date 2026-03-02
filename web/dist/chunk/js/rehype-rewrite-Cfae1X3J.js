@@ -1,0 +1,2 @@
+import{s as t}from"./hast-util-select-C4CMij1e.js";import{v as e}from"./unist-util-visit-B8kpuXze.js";const r=(t=[],e="")=>(t.forEach(t=>{"text"===t.type?e+=t.value:"element"===t.type&&t.children&&Array.isArray(t.children)&&(e+=r(t.children))}),e),i=r=>{const{selector:i,rewrite:s}=r||{};return r=>{if(s&&"function"==typeof s){if(i&&"string"==typeof i){const n=t(i,r);return void(n&&n.length>0&&e(r,n,(t,e,r)=>{s(t,e,r)}))}e(r,(t,e,r)=>{s(t,e,r)})}}};export{r as g,i as r};
+//# sourceMappingURL=rehype-rewrite-Cfae1X3J.js.map

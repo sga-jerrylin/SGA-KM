@@ -5,7 +5,7 @@
 /src/.umi/*
 /src/.umi-production/*
 /src/.umi-test
-/dist
+# /dist  # SGA-KM: dist 需要提交，方便部署时无需构建
 .swc
 
 *storybook.log

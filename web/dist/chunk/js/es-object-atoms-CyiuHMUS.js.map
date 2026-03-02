@@ -1,0 +1,1 @@
+{"version":3,"file":"es-object-atoms-CyiuHMUS.js","sources":["../../../node_modules/es-object-atoms/index.js"],"sourcesContent":["'use strict';\n\n/** @type {import('.')} */\nmodule.exports = Object;\n"],"names":["esObjectAtoms","Object"],"mappings":"qCAGAA,EAAiBC","x_google_ignoreList":[0]}

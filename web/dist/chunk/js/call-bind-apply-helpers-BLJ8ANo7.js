@@ -1,0 +1,36 @@
+import { r as n } from './es-errors-DTEWvbA_.js';
+import { r } from './function-bind-DrnB-baK.js';
+var t, e, o, f, i, u, c, a, p, l;
+function s() {
+  return e ? t : ((e = 1), (t = Function.prototype.call));
+}
+function y() {
+  return f ? o : ((f = 1), (o = Function.prototype.apply));
+}
+function d() {
+  if (a) return c;
+  a = 1;
+  var n = r(),
+    t = y(),
+    e = s(),
+    o = u
+      ? i
+      : ((u = 1),
+        (i = 'undefined' != typeof Reflect && Reflect && Reflect.apply));
+  return (c = o || n.call(e, t));
+}
+function m() {
+  if (l) return p;
+  l = 1;
+  var t = r(),
+    e = n(),
+    o = s(),
+    f = d();
+  return (p = function (r) {
+    if (r.length < 1 || 'function' != typeof r[0])
+      throw new e('a function is required');
+    return f(t, o, r);
+  });
+}
+export { s as a, y as b, m as r };
+//# sourceMappingURL=call-bind-apply-helpers-BLJ8ANo7.js.map

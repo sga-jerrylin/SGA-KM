@@ -1,0 +1,2 @@
+import{r as e}from"./inline-style-parser-D8_Zmyug.js";var t,r={};function n(){if(t)return r;t=1;var n=r&&r.__importDefault||function(e){return e&&e.__esModule?e:{default:e}};Object.defineProperty(r,"__esModule",{value:!0}),r.default=function(e,t){let r=null;if(!e||"string"!=typeof e)return r;const n=(0,o.default)(e),u="function"==typeof t;return n.forEach(e=>{if("declaration"!==e.type)return;const{property:n,value:o}=e;u?t(n,o,e):o&&(r=r||{},r[n]=o)}),r};const o=n(e());return r}export{n as r};
+//# sourceMappingURL=style-to-object-BQtMOu5m.js.map

@@ -1,0 +1,2 @@
+import{r as t}from"./es-object-atoms-CyiuHMUS.js";import{r}from"./dunder-proto-DQtCUrgC.js";var n,o,e,f,u,c;function i(){return o?n:(o=1,n="undefined"!=typeof Reflect&&Reflect.getPrototypeOf||null)}function a(){return f?e:(f=1,e=t().getPrototypeOf||null)}function p(){if(c)return u;c=1;var t=i(),n=a(),o=r();return u=t?function(r){return t(r)}:n?function(t){if(!t||"object"!=typeof t&&"function"!=typeof t)throw new TypeError("getProto: not an object");return n(t)}:o?function(t){return o(t)}:null}export{a,i as b,p as r};
+//# sourceMappingURL=get-proto--l4mVsOE.js.map

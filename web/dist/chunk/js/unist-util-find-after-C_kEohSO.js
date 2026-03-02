@@ -1,0 +1,2 @@
+import{c as e}from"./unist-util-is-C5Jwnfs7.js";const r=function(r,i,n){const t=e(n);if(!r||!r.type||!r.children)throw new Error("Expected parent node");if("number"==typeof i){if(i<0||i===Number.POSITIVE_INFINITY)throw new Error("Expected positive finite number as index")}else if((i=r.children.indexOf(i))<0)throw new Error("Expected child node or index");for(;++i<r.children.length;)if(t(r.children[i],i,r))return r.children[i]};export{r as f};
+//# sourceMappingURL=unist-util-find-after-C_kEohSO.js.map

@@ -1,0 +1,2 @@
+var e=(e=>(e.Full="full",e.Ellipse="ellipse",e))(e||{}),t=(e=>(e.begin="file",e.parser="parser",e.contextGenerator="extractor",e.titleSplitter="hierarchicalMerger",e.characterSplitter="splitter",e.tokenizer="tokenizer",e.end="end",e))(t||{}),r=(e=>(e.DocumentId="doc_id",e.KnowledgeId="knowledgeId",e.Type="type",e.IsReadOnly="is_read_only",e.AgentId="agent_id",e.AgentTitle="agent_title",e.CreatedBy="created_by",e.DocumentExtension="extension",e))(r||{});export{e as C,r as P,t as T};
+//# sourceMappingURL=constant-CwPpQw2x.js.map

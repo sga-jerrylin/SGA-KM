@@ -1,0 +1,2 @@
+import{d as r}from"./decode-named-character-reference-C-EXV6yX.js";import{d as e}from"./micromark-util-decode-numeric-character-reference-DA7xEauU.js";const c=/\\([!-/:-@[-`{-~])|&(#(?:\d{1,7}|x[\da-f]{1,6})|[\da-z]{1,31});/gi;function t(r){return r.replace(c,a)}function a(c,t,a){if(t)return t;if(35===a.charCodeAt(0)){const r=a.charCodeAt(1),c=120===r||88===r;return e(a.slice(c?2:1),c?16:10)}return r(a)||c}export{t as d};
+//# sourceMappingURL=micromark-util-decode-string-DnyHiccs.js.map

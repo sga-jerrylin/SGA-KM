@@ -1,0 +1,2 @@
+import{v as e}from"./unist-util-visit-B8kpuXze.js";const r=(r={})=>{const{openDelimiter:t="rehype:ignore:start",closeDelimiter:i="rehype:ignore:end"}=r;return r=>{e(r,(e,r,n)=>{if("element"===e.type||"root"===e.type){let r=!1;e.children=e.children.filter(e=>{if("raw"===e.type||"comment"===e.type){let n=(e.value||"").trim();if(n=n.replace(/^<!--(.*?)-->/,"$1"),n===t)return r=!0,!1;if(n===i)return r=!1,!1}return!r})}})}};export{r};
+//# sourceMappingURL=rehype-ignore-CPoHhEk8.js.map

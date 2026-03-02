@@ -1,0 +1,2 @@
+import{B as t}from"./github-slugger-C99hOO6H.js";import{v as i}from"./unist-util-visit-B8kpuXze.js";import{h as r}from"./hast-util-heading-rank-aoaNFAIO.js";import{t as s}from"./hast-util-to-string-C8D5Qmjx.js";const o={},e=new t;function n(t){const n=(t||o).prefix||"";return function(t){e.reset(),i(t,"element",function(t){r(t)&&!t.properties.id&&(t.properties.id=n+e.slug(s(t)))})}}export{n as r};
+//# sourceMappingURL=rehype-slug-80yhI6cO.js.map

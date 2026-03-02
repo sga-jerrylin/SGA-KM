@@ -1,0 +1,2 @@
+function n(n,t,o){const r=[];return n.forEach(n=>{const c=r.find(o=>o.id===n[t]);c?c.count+=1:r.push({id:n[t],label:n[o],count:1})}),r}function t(n,t){const o=[];return n.forEach(n=>{Array.isArray(n[t])&&n[t].forEach(n=>{const t=o.find(t=>t.id===n);t?t.count+=1:o.push({id:n,label:n,count:1})})}),o}function o(t,o){return{field:"owner",list:n(t,"tenant_id",o||"nickname"),label:"Owner"}}export{t as a,o as b,n as g};
+//# sourceMappingURL=list-filter-util-CB3iMFpj.js.map

@@ -1,0 +1,1 @@
+{"version":3,"file":"permission-BFSJGxYY.js","sources":["../../../src/constants/permission.ts"],"sourcesContent":["export enum PermissionRole {\r\n  Me = 'me',\r\n  Team = 'team',\r\n}\r\n"],"names":["PermissionRole"],"mappings":"AAAO,IAAKA,GAAAA,IACVA,EAAA,GAAK,KACLA,EAAA,KAAO,OAFGA,IAAAA,GAAA,CAAA"}

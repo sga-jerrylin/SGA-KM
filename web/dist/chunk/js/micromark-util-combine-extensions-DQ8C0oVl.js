@@ -1,0 +1,2 @@
+import{s as t}from"./micromark-util-chunked-3k3e5hER.js";const n={}.hasOwnProperty;function o(t){const n={};let o=-1;for(;++o<t.length;)r(n,t[o]);return n}function r(t,o){let r;for(r in o){const s=(n.call(t,r)?t[r]:void 0)||(t[r]={}),e=o[r];let i;if(e)for(i in e){n.call(s,i)||(s[i]=[]);const t=e[i];c(s[i],Array.isArray(t)?t:t?[t]:[])}}}function c(n,o){let r=-1;const c=[];for(;++r<o.length;)("after"===o[r].add?n:c).push(o[r]);t(n,0,0,c)}export{o as c};
+//# sourceMappingURL=micromark-util-combine-extensions-DQ8C0oVl.js.map

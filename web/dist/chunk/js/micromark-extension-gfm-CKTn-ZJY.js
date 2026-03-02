@@ -1,0 +1,2 @@
+import{c as o}from"./micromark-util-combine-extensions-DQ8C0oVl.js";import{g as m}from"./micromark-extension-gfm-autolink-literal-B3srAAs6.js";import{g as r}from"./micromark-extension-gfm-footnote-BE784Qy7.js";import{g as i}from"./micromark-extension-gfm-strikethrough-nxJWcXv1.js";import{g as t}from"./micromark-extension-gfm-table-DB3VKh-v.js";import{g as s}from"./micromark-extension-gfm-task-list-item-k3Z_kiff.js";function e(e){return o([m(),r(),i(e),t(),s()])}export{e as g};
+//# sourceMappingURL=micromark-extension-gfm-CKTn-ZJY.js.map

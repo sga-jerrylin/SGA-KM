@@ -1,0 +1,2 @@
+import{v as e}from"./chat-vfAgVoQX.js";import{aS as a,J as t}from"./utils-Czs-Tae-.js";const s=(a={},t="llm_setting.")=>Object.keys(e).filter(e=>!a[e]).map(a=>`${t}${e[a]}`),r=(t,r)=>a(t,[...Object.keys(e),"parameter",...s(t,r)]);function l(e,a,s,r=!1){return a?Object.values(e).map(e=>({label:a(`${s?s+".":""}${"string"==typeof e?r?t.camelCase(e):e.toLowerCase():e}`),value:e})):Object.values(e).map(e=>({label:e,value:e}))}function o(a){return Object.keys(e).reduce((t,s)=>(t[s]=void 0!==a&&!!a[e[s]],t),{})}export{l as b,r,o as s};
+//# sourceMappingURL=form-DX7T_blT.js.map

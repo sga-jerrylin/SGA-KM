@@ -1,0 +1,452 @@
+var e = Object.defineProperty,
+  r = Object.getOwnPropertySymbols,
+  t = Object.prototype.hasOwnProperty,
+  o = Object.prototype.propertyIsEnumerable,
+  a = (r, t, o) =>
+    t in r
+      ? e(r, t, { enumerable: !0, configurable: !0, writable: !0, value: o })
+      : (r[t] = o),
+  n = (e, n) => {
+    for (var l in n || (n = {})) t.call(n, l) && a(e, l, n[l]);
+    if (r) for (var l of r(n)) o.call(n, l) && a(e, l, n[l]);
+    return e;
+  };
+import { g as i, m as l } from './@babel-IS4qnvsE.js';
+import { u as v } from './devlop-Cl3hj7Sz.js';
+import { t as x } from './hast-util-to-jsx-runtime-BDJvvUl9.js';
+import { u as N } from './html-url-attributes-BA_i5Yxb.js';
+import { r as m, T as p, j as s } from './react-Clxusn8M.js';
+import { r as f } from './rehype-attr-Cm35B7q8.js';
+import { r as P } from './rehype-autolink-headings-B4Vfv9Ej.js';
+import { r as O } from './rehype-ignore-CPoHhEk8.js';
+import { f as d } from './rehype-prism-plus-DAaylkba.js';
+import { r as E } from './rehype-raw-DXvCHr2H.js';
+import { g as c, r as u } from './rehype-rewrite-Cfae1X3J.js';
+import { r as C } from './rehype-slug-80yhI6cO.js';
+import { r as g } from './remark-gfm-BHvwoCZ2.js';
+import { r as h } from './remark-github-blockquote-alert-CpPfJzwD.js';
+import { r as w } from './remark-parse-DzmvAPAU.js';
+import { r as j } from './remark-rehype-oWJv6Jzo.js';
+import { u as y } from './unified-DAOEaPQg.js';
+import { v as k } from './unist-util-visit-B8kpuXze.js';
+import { V as b } from './vfile-BH-0XMDo.js';
+const R = [],
+  S = { allowDangerousHtml: !0 },
+  H = /^(https?|ircs?|mailto|xmpp)$/i,
+  M = [
+    { from: 'astPlugins', id: 'remove-buggy-html-in-markdown-parser' },
+    { from: 'allowDangerousHtml', id: 'remove-buggy-html-in-markdown-parser' },
+    {
+      from: 'allowNode',
+      id: 'replace-allownode-allowedtypes-and-disallowedtypes',
+      to: 'allowElement',
+    },
+    {
+      from: 'allowedTypes',
+      id: 'replace-allownode-allowedtypes-and-disallowedtypes',
+      to: 'allowedElements',
+    },
+    {
+      from: 'disallowedTypes',
+      id: 'replace-allownode-allowedtypes-and-disallowedtypes',
+      to: 'disallowedElements',
+    },
+    { from: 'escapeHtml', id: 'remove-buggy-html-in-markdown-parser' },
+    { from: 'includeElementIndex', id: '#remove-includeelementindex' },
+    {
+      from: 'includeNodeIndex',
+      id: 'change-includenodeindex-to-includeelementindex',
+    },
+    { from: 'linkTarget', id: 'remove-linktarget' },
+    {
+      from: 'plugins',
+      id: 'change-plugins-to-remarkplugins',
+      to: 'remarkPlugins',
+    },
+    { from: 'rawSourcePos', id: '#remove-rawsourcepos' },
+    {
+      from: 'renderers',
+      id: 'change-renderers-to-components',
+      to: 'components',
+    },
+    { from: 'source', id: 'change-source-to-children', to: 'children' },
+    { from: 'sourcePos', id: '#remove-sourcepos' },
+    { from: 'transformImageUri', id: '#add-urltransform', to: 'urlTransform' },
+    { from: 'transformLinkUri', id: '#add-urltransform', to: 'urlTransform' },
+  ];
+function T(e) {
+  const r = e.allowedElements,
+    t = e.allowElement,
+    o = e.children || '',
+    a = e.className,
+    l = e.components,
+    i = e.disallowedElements,
+    m = e.rehypePlugins || R,
+    p = e.remarkPlugins || R,
+    d = e.remarkRehypeOptions ? n(n({}, e.remarkRehypeOptions), S) : S,
+    c = e.skipHtml,
+    u = e.unwrapDisallowed,
+    f = e.urlTransform || A,
+    h = y().use(w).use(p).use(j, d).use(m),
+    g = new b();
+  'string' == typeof o && (g.value = o);
+  for (const n of M)
+    Object.hasOwn(e, n.from) &&
+      v(
+        'Unexpected `' +
+          n.from +
+          '` prop, ' +
+          (n.to ? 'use `' + n.to + '` instead' : 'remove it') +
+          ' (see <https://github.com/remarkjs/react-markdown/blob/main/changelog.md#' +
+          n.id +
+          '> for more info)',
+      );
+  const E = h.parse(g);
+  let O = h.runSync(E, g);
+  return (
+    a &&
+      (O = {
+        type: 'element',
+        tagName: 'div',
+        properties: { className: a },
+        children: 'root' === O.type ? O.children : [O],
+      }),
+    k(O, function (e, o, a) {
+      if ('raw' === e.type && a && 'number' == typeof o)
+        return (
+          c
+            ? a.children.splice(o, 1)
+            : (a.children[o] = { type: 'text', value: e.value }),
+          o
+        );
+      if ('element' === e.type) {
+        let r;
+        for (r in N)
+          if (Object.hasOwn(N, r) && Object.hasOwn(e.properties, r)) {
+            const t = e.properties[r],
+              o = N[r];
+            (null === o || o.includes(e.tagName)) &&
+              (e.properties[r] = f(String(t || ''), r, e));
+          }
+      }
+      if ('element' === e.type) {
+        let n = r ? !r.includes(e.tagName) : !!i && i.includes(e.tagName);
+        if (
+          (!n && t && 'number' == typeof o && (n = !t(e, o, a)),
+          n && a && 'number' == typeof o)
+        )
+          return (
+            u && e.children
+              ? a.children.splice(o, 1, ...e.children)
+              : a.children.splice(o, 1),
+            o
+          );
+      }
+    }),
+    x(O, {
+      Fragment: s.Fragment,
+      components: l,
+      ignoreInvalidStyle: !0,
+      jsx: s.jsx,
+      jsxs: s.jsxs,
+      passKeys: !0,
+      passNode: !0,
+    })
+  );
+}
+function A(e) {
+  const r = e.indexOf(':'),
+    t = e.indexOf('?'),
+    o = e.indexOf('#'),
+    a = e.indexOf('/');
+  return -1 === r ||
+    (-1 !== a && r > a) ||
+    (-1 !== t && r > t) ||
+    (-1 !== o && r > o) ||
+    H.test(e.slice(0, r))
+    ? e
+    : '';
+}
+function L(e) {
+  if (!e) return null;
+  var r = e;
+  return r.dataset.code && r.classList.contains('copied')
+    ? r
+    : r.parentElement
+      ? L(r.parentElement)
+      : null;
+}
+function z(e) {
+  var r = (e) => {
+    var r = L(e.target);
+    r &&
+      (r.classList.add('active'),
+      (function (e, r) {
+        if ('undefined' == typeof document) return;
+        const t = document.createElement('textarea');
+        ((t.value = e),
+          t.setAttribute('readonly', ''),
+          (t.style = { position: 'absolute', left: '-9999px' }),
+          document.body.appendChild(t));
+        const o =
+          document.getSelection().rangeCount > 0 &&
+          document.getSelection().getRangeAt(0);
+        t.select();
+        let a = !1;
+        try {
+          a = !!document.execCommand('copy');
+        } catch (n) {
+          a = !1;
+        }
+        (document.body.removeChild(t),
+          o &&
+            document.getSelection &&
+            (document.getSelection().removeAllRanges(),
+            document.getSelection().addRange(o)),
+          r && r(a));
+      })(r.dataset.code, function () {
+        setTimeout(() => {
+          r.classList.remove('active');
+        }, 2e3);
+      }));
+  };
+  m.useEffect(() => {
+    var t, o;
+    return (
+      null == (t = e.current) || t.removeEventListener('click', r, !1),
+      null == (o = e.current) || o.addEventListener('click', r, !1),
+      () => {
+        var t;
+        null == (t = e.current) || t.removeEventListener('click', r, !1);
+      }
+    );
+  }, [e]);
+}
+var I = [
+    'prefixCls',
+    'className',
+    'source',
+    'style',
+    'disableCopy',
+    'skipHtml',
+    'onScroll',
+    'onMouseOver',
+    'pluginsFilter',
+    'rehypeRewrite',
+    'wrapperElement',
+    'warpperElement',
+    'urlTransform',
+  ],
+  F = (e) => e;
+const B = p.forwardRef((e, r) => {
+  var {
+      prefixCls: t = 'wmde-markdown wmde-markdown-color',
+      className: o,
+      source: a,
+      style: n,
+      disableCopy: d = !1,
+      skipHtml: c = !0,
+      onScroll: u,
+      onMouseOver: f,
+      pluginsFilter: v,
+      wrapperElement: y = {},
+      warpperElement: w = {},
+      urlTransform: j,
+    } = e,
+    b = l(e, I),
+    k = p.useRef(null);
+  m.useImperativeHandle(r, () => i({}, e, { mdp: k }), [k, e]);
+  var x = (t || '') + ' ' + (o || '');
+  z(k);
+  var N = [...(b.rehypePlugins || [])],
+    O = {
+      allowElement: (e, r, t) =>
+        b.allowElement
+          ? b.allowElement(e, r, t)
+          : /^[A-Za-z0-9]+$/.test(e.tagName),
+    };
+  c || N.push(E);
+  var C = [h, ...(b.remarkPlugins || []), g],
+    P = i({}, w, y);
+  return s.jsx(
+    'div',
+    i({ ref: k, onScroll: u, onMouseOver: f }, P, {
+      className: x,
+      style: n,
+      children: s.jsx(
+        T,
+        i({}, O, b, {
+          skipHtml: !c,
+          urlTransform: j || F,
+          rehypePlugins: v ? v('rehype', N) : N,
+          remarkPlugins: v ? v('remark', C) : C,
+          children: a || '',
+        }),
+      ),
+    }),
+  );
+});
+var D = function (e) {
+    return (e) => {
+      k(e, (e) => {
+        'element' === e.type &&
+          'code' === e.tagName &&
+          e.data &&
+          e.data.meta &&
+          (e.properties = i({}, e.properties, {
+            'data-meta': String(e.data.meta),
+          }));
+      });
+    };
+  },
+  U = function (e) {
+    return (e) => {
+      k(e, (e) => {
+        if (
+          'element' === e.type &&
+          'code' === e.tagName &&
+          e.properties &&
+          e.properties.dataMeta
+        ) {
+          e.data || (e.data = {});
+          var r = e.properties.dataMeta;
+          ('string' == typeof r && (e.data.meta = r),
+            delete e.properties.dataMeta);
+        }
+      });
+    };
+  },
+  K = {
+    type: 'element',
+    tagName: 'svg',
+    properties: {
+      className: 'octicon octicon-link',
+      viewBox: '0 0 16 16',
+      version: '1.1',
+      width: '16',
+      height: '16',
+      ariaHidden: 'true',
+    },
+    children: [
+      {
+        type: 'element',
+        tagName: 'path',
+        children: [],
+        properties: {
+          fillRule: 'evenodd',
+          d: 'M7.775 3.275a.75.75 0 001.06 1.06l1.25-1.25a2 2 0 112.83 2.83l-2.5 2.5a2 2 0 01-2.83 0 .75.75 0 00-1.06 1.06 3.5 3.5 0 004.95 0l2.5-2.5a3.5 3.5 0 00-4.95-4.95l-1.25 1.25zm-4.69 9.64a2 2 0 010-2.83l2.5-2.5a2 2 0 012.83 0 .75.75 0 001.06-1.06 3.5 3.5 0 00-4.95 0l-2.5 2.5a3.5 3.5 0 004.95 4.95l1.25-1.25a.75.75 0 00-1.06-1.06l-1.25 1.25a2 2 0 01-2.83 0z',
+        },
+      },
+    ],
+  };
+var $ = [C, P, O];
+const q = p.forwardRef((e, r) => {
+  var t,
+    o,
+    a,
+    n = [
+      D,
+      E,
+      U,
+      ...$,
+      [
+        u,
+        {
+          rewrite:
+            ((o = null != (t = e.disableCopy) && t),
+            (a = e.rehypeRewrite),
+            (e, r, t) => {
+              if (
+                'element' === e.type &&
+                t &&
+                'root' === t.type &&
+                /h(1|2|3|4|5|6)/.test(e.tagName)
+              ) {
+                var n = e.children && e.children[0];
+                n &&
+                  n.properties &&
+                  'true' === n.properties.ariaHidden &&
+                  ((n.properties = i({ class: 'anchor' }, n.properties)),
+                  (n.children = [K]));
+              }
+              if ('element' === e.type && 'pre' === e.tagName && !o) {
+                var l = c(e.children);
+                e.children.push(
+                  (void 0 === (s = l) && (s = ''),
+                  {
+                    type: 'element',
+                    tagName: 'div',
+                    properties: { class: 'copied', 'data-code': s },
+                    children: [
+                      {
+                        type: 'element',
+                        tagName: 'svg',
+                        properties: {
+                          className: 'octicon-copy',
+                          ariaHidden: 'true',
+                          viewBox: '0 0 16 16',
+                          fill: 'currentColor',
+                          height: 12,
+                          width: 12,
+                        },
+                        children: [
+                          {
+                            type: 'element',
+                            tagName: 'path',
+                            properties: {
+                              fillRule: 'evenodd',
+                              d: 'M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z',
+                            },
+                            children: [],
+                          },
+                          {
+                            type: 'element',
+                            tagName: 'path',
+                            properties: {
+                              fillRule: 'evenodd',
+                              d: 'M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z',
+                            },
+                            children: [],
+                          },
+                        ],
+                      },
+                      {
+                        type: 'element',
+                        tagName: 'svg',
+                        properties: {
+                          className: 'octicon-check',
+                          ariaHidden: 'true',
+                          viewBox: '0 0 16 16',
+                          fill: 'currentColor',
+                          height: 12,
+                          width: 12,
+                        },
+                        children: [
+                          {
+                            type: 'element',
+                            tagName: 'path',
+                            properties: {
+                              fillRule: 'evenodd',
+                              d: 'M13.78 4.22a.75.75 0 010 1.06l-7.25 7.25a.75.75 0 01-1.06 0L2.22 9.28a.75.75 0 011.06-1.06L6 10.94l6.72-6.72a.75.75 0 011.06 0z',
+                            },
+                            children: [],
+                          },
+                        ],
+                      },
+                    ],
+                  }),
+                );
+              }
+              var s;
+              a && a(e, null === r ? void 0 : r, null === t ? void 0 : t);
+            }),
+        },
+      ],
+      [f, { properties: 'attr' }],
+      ...(e.rehypePlugins || []),
+      [d, { ignoreMissing: !0 }],
+    ];
+  return s.jsx(B, i({}, e, { rehypePlugins: n, ref: r }));
+});
+export { q as M };
+//# sourceMappingURL=@uiw-BXFUlCat.js.map

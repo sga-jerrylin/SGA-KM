@@ -1,0 +1,2 @@
+import{r}from"./format-D1yhUpzL.js";var e,n;function a(){if(n)return e;n=1;var a=r(),o=t(Error);function t(r){return e.displayName=r.displayName||r.name,e;function e(e){return e&&(e=a.apply(null,arguments)),new r(e)}}return e=o,o.eval=t(EvalError),o.range=t(RangeError),o.reference=t(ReferenceError),o.syntax=t(SyntaxError),o.type=t(TypeError),o.uri=t(URIError),o.create=t,e}export{a as r};
+//# sourceMappingURL=fault-B9NM2TdK.js.map

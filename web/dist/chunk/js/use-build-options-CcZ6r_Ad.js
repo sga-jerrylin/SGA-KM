@@ -1,0 +1,2 @@
+import{d as t}from"./agent-DNsAG7Cr.js";import{b as o}from"./form-DX7T_blT.js";import{r}from"./react-Clxusn8M.js";import{u as s}from"./react-i18next-BMfXCA5U.js";function a(){const{t:r}=s();return o(t,r,"flow.switchLogicOperatorOptions")}function e(){const{t:t}=s();return{buildModelTypeOptions:r.useCallback(o=>o.map(o=>({value:o,label:t(`setting.modelTypes.${o}`)})),[t])}}export{e as a,a as u};
+//# sourceMappingURL=use-build-options-CcZ6r_Ad.js.map

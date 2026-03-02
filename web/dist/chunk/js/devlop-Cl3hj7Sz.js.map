@@ -1,0 +1,1 @@
+{"version":3,"file":"devlop-Cl3hj7Sz.js","sources":["../../../node_modules/devlop/lib/default.js"],"sourcesContent":["export function deprecate(fn) {\n  return fn\n}\n\nexport function equal() {}\n\nexport function ok() {}\n\nexport function unreachable() {}\n"],"names":["ok","unreachable"],"mappings":"AAMO,SAASA,IAAM,CAEf,SAASC,IAAe","x_google_ignoreList":[0]}

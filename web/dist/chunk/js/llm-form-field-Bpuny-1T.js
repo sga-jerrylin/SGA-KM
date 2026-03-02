@@ -1,0 +1,2 @@
+import{j as o}from"./react-Clxusn8M.js";import{L as s}from"./knowledge-Dd5ClXAK.js";import{u as t}from"./use-llm-request-CEg4uBkM.js";import{S as e}from"./select-with-search-Dcm0VCnv.js";import{R as r}from"./ragflow-form-Cdwsmcxy.js";import{u as m}from"./react-i18next-BMfXCA5U.js";const a=()=>({modelOptions:t([s.Chat,s.Image2text])});function i({options:s,name:t}){const{t:i}=m(),{modelOptions:n}=a();return o.jsx(r,{name:t||"llm_id",label:i("chat.model"),children:o.jsx(e,{options:s||n})})}export{i as L,a as u};
+//# sourceMappingURL=llm-form-field-Bpuny-1T.js.map
