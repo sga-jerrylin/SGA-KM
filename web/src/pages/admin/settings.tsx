@@ -115,8 +115,8 @@ const AdminSettings = () => {
 
   const handleLogoFileSelect = useCallback(
     (type: 'login' | 'home', file: File) => {
-      if (file.size > 512 * 1024) {
-        message.error(t('admin.logoTooLarge', 'Logo 文件不能超过 512KB'));
+      if (file.size > 2 * 1024 * 1024) {
+        message.error(t('admin.logoTooLarge', 'Logo 文件不能超过 2MB'));
         return;
       }
       if (!file.type.startsWith('image/')) {

@@ -16,6 +16,7 @@
 
 
 import logging
+import os
 import uuid
 from functools import wraps
 from datetime import datetime
@@ -75,60 +76,28 @@ def setup_auth(login_manager):
 
 def init_default_admin():
     """
-    Initialize the default superuser account.
-    - Creates zhengys1@xindeco.com.cn as the primary superuser if not exists
-    - Demotes admin@ragflow.io to non-superuser if it exists
+    Verify that the superuser (created by --init-superuser in ragflow_server)
+    exists and is active. The admin server does NOT create users — it only validates.
     """
-    # Define the primary superuser
-    PRIMARY_SUPERUSER_EMAIL = "zhengys1@xindeco.com.cn"
-    PRIMARY_SUPERUSER_PASSWORD = "admin"
-    PRIMARY_SUPERUSER_NICKNAME = "超级管理员"
-
-    # Check if primary superuser exists
-    primary_users = UserService.query(email=PRIMARY_SUPERUSER_EMAIL)
-    if not primary_users:
-        # Create the primary superuser
-        from api.db.joint_services.user_account_service import create_new_user
-        user_info = {
-            "email": PRIMARY_SUPERUSER_EMAIL,
-            "password": PRIMARY_SUPERUSER_PASSWORD,
-            "nickname": PRIMARY_SUPERUSER_NICKNAME,
-            "login_channel": "password",
-            "is_superuser": True,
-        }
-        result = create_new_user(user_info)
-        if not result.get("success"):
-            raise AdminException(f"Can't create superuser {PRIMARY_SUPERUSER_EMAIL}.", 500)
-        logging.info(f"Created superuser: {PRIMARY_SUPERUSER_EMAIL}")
-    else:
-        # Ensure the primary superuser has superuser privileges
-        primary_user = primary_users[0]
-        if not primary_user.is_superuser:
-            UserService.update_user(primary_user.id, {"is_superuser": True})
-            logging.info(f"Updated {PRIMARY_SUPERUSER_EMAIL} to superuser")
-
-    # Demote the old admin@ragflow.io account if it exists
-    OLD_ADMIN_EMAIL = "admin@ragflow.io"
-    old_admin_users = UserService.query(email=OLD_ADMIN_EMAIL)
-    if old_admin_users:
-        old_admin = old_admin_users[0]
-        if old_admin.is_superuser:
-            UserService.update_user(old_admin.id, {"is_superuser": False})
-            logging.info(f"Demoted {OLD_ADMIN_EMAIL} from superuser to normal user")
+    SUPERUSER_EMAIL = os.getenv("DEFAULT_SUPERUSER_EMAIL", "admin@ragflow.io")
 
     # Verify that at least one active superuser exists
     superusers = UserService.query(is_superuser=True)
     if not superusers:
-        raise AdminException("No superuser found after initialization.", 500)
-    if not any([u.is_active == ActiveEnum.ACTIVE.value for u in superusers]):
+        logging.warning(f"No superuser found. Ensure --init-superuser runs on ragflow_server first.")
+        return
+    if not any(u.is_active == ActiveEnum.ACTIVE.value for u in superusers):
         raise AdminException("No active admin. Please update 'is_active' in db manually.", 500)
-    else:
-        default_admin_rows = [u for u in superusers if u.email == "admin@ragflow.io"]
-        if default_admin_rows:
-            default_admin = default_admin_rows[0].to_dict()
-            exist, default_admin_tenant = TenantService.get_by_id(default_admin["id"])
-            if not exist:
-                add_tenant_for_admin(default_admin, UserTenantRole.OWNER)
+
+    # Ensure the designated superuser has a tenant
+    admin_rows = [u for u in superusers if u.email == SUPERUSER_EMAIL]
+    if admin_rows:
+        admin_dict = admin_rows[0].to_dict()
+        exist, _ = TenantService.get_by_id(admin_dict["id"])
+        if not exist:
+            add_tenant_for_admin(admin_dict, UserTenantRole.OWNER)
+
+    logging.info(f"Admin server verified superuser: {SUPERUSER_EMAIL}")
 
 
 def add_tenant_for_admin(user_info: dict, role: str):
@@ -183,9 +152,7 @@ def login_admin(email: str, password: str):
     users = UserService.query(email=email)
     if not users:
         raise UserNotFoundError(email)
-    # decrypt() returns base64-encoded password, need to decode it
-    psw_base64 = decrypt(password)
-    psw = base64.b64decode(psw_base64).decode('utf-8')
+    psw = decrypt(password)
     user = UserService.query_user(email, psw)
     if not user:
         raise AdminException("Email and password do not match!")
@@ -197,8 +164,8 @@ def login_admin(email: str, password: str):
     resp = user.to_json()
     user.access_token = get_uuid()
     login_user(user)
-    user.update_time = (current_timestamp(),)
-    user.update_date = (datetime_format(datetime.now()),)
+    user.update_time = current_timestamp()
+    user.update_date = datetime_format(datetime.now())
     user.last_login_time = get_format_time()
     user.save()
     msg = "Welcome back!"

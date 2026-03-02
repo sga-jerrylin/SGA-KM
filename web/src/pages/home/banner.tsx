@@ -1,4 +1,5 @@
 import { Card, CardContent } from '@/components/ui/card';
+import { useBranding } from '@/hooks/use-branding';
 import { ArrowRight, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -41,11 +42,12 @@ export function Banner() {
 
 export function NextBanner() {
   const { t } = useTranslation();
+  const { branding } = useBranding();
   return (
     <section className="text-5xl pt-10 pb-14 font-bold px-10">
       <span className="text-text-primary">{t('header.welcome')}</span>
       <span className="pl-3 text-transparent bg-clip-text  bg-gradient-to-l from-[#40EBE3] to-[#4A51FF]">
-        RAGFlow
+        {branding.productName}
       </span>
     </section>
   );

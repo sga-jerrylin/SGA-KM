@@ -131,11 +131,11 @@ export function Header() {
 
   return (
     <section className="py-5 px-10 flex justify-between items-center ">
-      <div className="flex items-center gap-4">
+      <div className="flex items-center shrink-0">
         <img
           src={branding.homeLogoUrl}
           alt="logo"
-          className="size-10 mr-[12] cursor-pointer"
+          className="h-24 w-auto max-w-[480px] cursor-pointer object-contain"
           onClick={handleLogoClick}
         />
       </div>

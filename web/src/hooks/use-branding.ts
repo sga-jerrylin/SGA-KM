@@ -1,5 +1,6 @@
 // KM-CUSTOM: Branding hook for dynamic logo and text
 import { useQuery } from '@tanstack/react-query';
+import { useEffect } from 'react';
 
 import {
   getBranding,
@@ -40,6 +41,14 @@ export function useBranding(): { branding: Branding; isLoading: boolean } {
       ? getBrandingLogoUrl('home')
       : DEFAULT_LOGO,
   };
+
+  useEffect(() => {
+    document.title = branding.productName;
+    const link = document.querySelector<HTMLLinkElement>("link[rel*='icon']");
+    if (link) {
+      link.href = branding.loginLogoUrl;
+    }
+  }, [branding.productName, branding.loginLogoUrl]);
 
   return { branding, isLoading };
 }

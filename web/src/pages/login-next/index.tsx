@@ -154,20 +154,25 @@ const Login = () => {
 
         <div className="absolute top-3 flex flex-col items-center mb-12 w-full text-text-primary">
           <div className="flex items-center mb-4 w-full pl-10 pt-10 ">
-            <div className="w-12 h-12 p-2 rounded-lg flex items-center justify-center mr-3">
+            <div className="w-16 h-16 rounded-lg flex items-center justify-center mr-3">
               <img
                 src={branding.loginLogoUrl}
                 alt="logo"
-                className="size-8 mr-[12] cursor-pointer"
+                className="h-12 w-auto max-w-[192px] object-contain cursor-pointer"
               />
             </div>
-            <div className="text-xl font-bold self-center">
+            <div className="text-2xl font-bold self-center text-transparent bg-clip-text bg-gradient-to-r from-[#40EBE3] via-[#4A51FF] to-[#9B59B6]">
               {branding.productName}
             </div>
           </div>
           <h1 className="text-[36px] font-medium  text-center mb-2">
-            {t('title')}
+            {branding.welcomeText || t('title')}
           </h1>
+          {branding.tagline && (
+            <p className="text-center text-lg text-muted-foreground">
+              {branding.tagline}
+            </p>
+          )}
           {/* border border-accent-primary rounded-full */}
           {/* <div className="mt-4 px-6 py-1 text-sm font-medium text-cyan-600  hover:bg-cyan-50 transition-colors duration-200 border-glow relative overflow-hidden">
             {t('start')}

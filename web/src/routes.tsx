@@ -333,9 +333,7 @@ const routeConfigOptions = [
     path: `${Routes.ParsedResult}/chunks`,
     layout: false,
     Component: () =>
-      import(
-        '@/pages/chunk/parsed-result/add-knowledge/components/knowledge-chunk'
-      ),
+      import('@/pages/chunk/parsed-result/add-knowledge/components/knowledge-chunk'),
   },
   {
     path: Routes.Chunk,
@@ -413,11 +411,10 @@ const routeConfigOptions = [
     Component: () => import('@/pages/admin/layouts/root-layout'),
     children: [
       {
-        path: Routes.Admin,
+        index: true,
         Component: () => import('@/pages/admin/login'),
       },
       {
-        path: Routes.Admin,
         Component: () => import('@/pages/admin/layouts/authorized-layout'),
 
         children: [
@@ -430,7 +427,7 @@ const routeConfigOptions = [
 
             children: [
               {
-                path: Routes.Admin,
+                index: true,
                 element: <Navigate to={Routes.AdminDashboard} replace />,
               },
               {

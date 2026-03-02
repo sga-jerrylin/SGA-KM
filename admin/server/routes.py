@@ -16,6 +16,7 @@
 
 import base64
 import io
+import os
 import secrets
 import logging
 from typing import Any
@@ -707,7 +708,9 @@ BRANDING_KEYS = {
     "tagline": ("branding.tagline", ""),
 }
 LOGO_TYPES = ("login", "home")
-MAX_LOGO_SIZE = 512 * 1024  # 512KB
+MAX_LOGO_SIZE = 2 * 1024 * 1024  # 2MB
+BRANDING_DIR = os.path.join(os.getenv("RAG_PROJECT_DIR", "/ragflow"), "logs", "branding")
+os.makedirs(BRANDING_DIR, exist_ok=True)
 
 
 @admin_bp.route("/branding", methods=["GET"])
@@ -720,9 +723,10 @@ def get_branding():
         for field, (key, default) in BRANDING_KEYS.items():
             result[field] = SystemSettingService.get_value(key, default)
 
+        import glob
         for logo_type in LOGO_TYPES:
-            key = f"branding.{logo_type}_logo"
-            result[f"has_{logo_type}_logo"] = SystemSettingService.get_value(key) is not None
+            files = glob.glob(os.path.join(BRANDING_DIR, f"{logo_type}_logo.*"))
+            result[f"has_{logo_type}_logo"] = len(files) > 0
 
         return success_response(result)
     except Exception as e:
@@ -731,28 +735,24 @@ def get_branding():
 
 @admin_bp.route("/branding/logo/<logo_type>", methods=["GET"])
 def get_branding_logo(logo_type: str):
-    """Public endpoint: serves a logo image."""
+    """Public endpoint: serves a logo image file."""
     if logo_type not in LOGO_TYPES:
         return error_response(f"Invalid logo type: {logo_type}", 400)
 
     try:
-        from api.db.services.system_setting_service import SystemSettingService
-
-        key = f"branding.{logo_type}_logo"
-        data_uri = SystemSettingService.get_value(key)
-        if not data_uri:
+        import glob
+        pattern = os.path.join(BRANDING_DIR, f"{logo_type}_logo.*")
+        files = glob.glob(pattern)
+        if not files:
             return Response(status=404)
 
-        # Parse data URI: "data:<mime>;base64,<data>"
-        header, encoded = data_uri.split(",", 1)
-        mime_type = header.split(":")[1].split(";")[0]
-        image_bytes = base64.b64decode(encoded)
+        filepath = files[0]
+        ext = os.path.splitext(filepath)[1].lower()
+        mime_map = {".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg",
+                    ".gif": "image/gif", ".svg": "image/svg+xml", ".webp": "image/webp", ".ico": "image/x-icon"}
+        mime_type = mime_map.get(ext, "image/png")
 
-        return send_file(
-            io.BytesIO(image_bytes),
-            mimetype=mime_type,
-            max_age=300,
-        )
+        return send_file(filepath, mimetype=mime_type, max_age=300)
     except Exception as e:
         logging.exception("get_branding_logo error")
         return error_response(str(e), 500)
@@ -786,13 +786,11 @@ def update_branding():
 @login_required
 @check_admin_auth
 def upload_branding_logo(logo_type: str):
-    """Admin endpoint: upload a logo image (as base64 data URI in JSON body)."""
+    """Admin endpoint: upload a logo image (as base64 data URI in JSON body). Saved to file."""
     if logo_type not in LOGO_TYPES:
         return error_response(f"Invalid logo type: {logo_type}", 400)
 
     try:
-        from api.db.services.system_setting_service import SystemSettingService
-
         data = request.get_json()
         if not data or "logo" not in data:
             return error_response("Field 'logo' is required (data URI)", 400)
@@ -801,15 +799,38 @@ def upload_branding_logo(logo_type: str):
         if not data_uri.startswith("data:image/"):
             return error_response("Logo must be a data URI starting with 'data:image/'", 400)
 
-        # Validate size
-        _header, encoded = data_uri.split(",", 1)
-        raw_size = len(base64.b64decode(encoded))
-        if raw_size > MAX_LOGO_SIZE:
-            return error_response(f"Logo exceeds maximum size of {MAX_LOGO_SIZE // 1024}KB", 400)
+        # Parse data URI: "data:image/png;base64,<data>"
+        header, encoded = data_uri.split(",", 1)
+        mime_type = header.split(":")[1].split(";")[0]
+        # Add base64 padding if needed
+        padding = 4 - len(encoded) % 4
+        if padding != 4:
+            encoded += "=" * padding
+        image_bytes = base64.b64decode(encoded)
 
-        key = f"branding.{logo_type}_logo"
-        SystemSettingService.set_value(key, data_uri)
+        if len(image_bytes) > MAX_LOGO_SIZE:
+            return error_response(f"Logo exceeds maximum size of {MAX_LOGO_SIZE // (1024*1024)}MB", 400)
 
+        # Determine file extension from mime type
+        ext_map = {"image/png": ".png", "image/jpeg": ".jpg", "image/gif": ".gif",
+                   "image/svg+xml": ".svg", "image/webp": ".webp", "image/x-icon": ".ico"}
+        ext = ext_map.get(mime_type, ".png")
+
+        # Remove any existing logo files for this type
+        import glob
+        for old in glob.glob(os.path.join(BRANDING_DIR, f"{logo_type}_logo.*")):
+            os.remove(old)
+
+        # Save new logo file
+        filepath = os.path.join(BRANDING_DIR, f"{logo_type}_logo{ext}")
+        with open(filepath, "wb") as f:
+            f.write(image_bytes)
+
+        # Update DB flag so branding API knows a logo exists
+        from api.db.services.system_setting_service import SystemSettingService
+        SystemSettingService.set_value(f"branding.{logo_type}_logo", "file")
+
+        logging.info(f"Branding logo saved: {filepath} ({len(image_bytes)} bytes)")
         return success_response({"type": logo_type}, "Logo uploaded successfully")
     except Exception as e:
         logging.exception("upload_branding_logo error")
@@ -825,10 +846,14 @@ def delete_branding_logo(logo_type: str):
         return error_response(f"Invalid logo type: {logo_type}", 400)
 
     try:
-        from api.db.services.system_setting_service import SystemSettingService
+        # Remove logo file
+        import glob
+        for old in glob.glob(os.path.join(BRANDING_DIR, f"{logo_type}_logo.*")):
+            os.remove(old)
 
-        key = f"branding.{logo_type}_logo"
-        SystemSettingService.set_value(key, None)
+        # Clear DB flag
+        from api.db.services.system_setting_service import SystemSettingService
+        SystemSettingService.set_value(f"branding.{logo_type}_logo", None)
 
         return success_response({"type": logo_type}, "Logo deleted successfully")
     except Exception as e:

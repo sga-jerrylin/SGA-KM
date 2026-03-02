@@ -25,9 +25,10 @@ services:
     #   - --no-transport-streamable-http-enabled #  Disable Streamable HTTP transport (/mcp endpoint)
     #   - --no-json-response # Disable JSON response mode in Streamable HTTP transport (instead of SSE over HTTP)
 
-    # Enable Admin server for user management
+    # Enable Admin server + auto-create superuser on first boot
     command:
       - --enable-adminserver
+      - --init-superuser
     ports:
       - ${SVR_WEB_HTTP_PORT}:80
       - ${SVR_WEB_HTTPS_PORT}:443
@@ -42,6 +43,13 @@ services:
       - ./service_conf.yaml.template:/ragflow/conf/service_conf.yaml.template
       - ./entrypoint.sh:/ragflow/entrypoint.sh
       - ../rag/res:/ragflow/rag/res
+      - ../api/apps/user_app.py:/ragflow/api/apps/user_app.py
+      - ../api/db/init_data.py:/ragflow/api/db/init_data.py
+      - ../api/common/base64.py:/ragflow/api/common/base64.py
+      - ../admin/server/auth.py:/ragflow/admin/server/auth.py
+      - ../admin/server/routes.py:/ragflow/admin/server/routes.py
+      - ../api/db/services/system_setting_service.py:/ragflow/api/db/services/system_setting_service.py
+      - ../web/dist:/ragflow/web/dist
       - uv_tools_data:/ragflow/uv_tools
       - venv_data:/ragflow/.venv
     env_file: .env
@@ -77,9 +85,10 @@ services:
     #   - --no-transport-streamable-http-enabled #  Disable Streamable HTTP transport (/mcp endpoint)
     #   - --no-json-response # Disable JSON response mode in Streamable HTTP transport (instead of SSE over HTTP)
 
-    # Enable Admin server for user management
+    # Enable Admin server + auto-create superuser on first boot
     command:
       - --enable-adminserver
+      - --init-superuser
     ports:
       - ${SVR_WEB_HTTP_PORT}:80
       - ${SVR_WEB_HTTPS_PORT}:443
@@ -94,6 +103,13 @@ services:
       - ./service_conf.yaml.template:/ragflow/conf/service_conf.yaml.template
       - ./entrypoint.sh:/ragflow/entrypoint.sh
       - ../rag/res:/ragflow/rag/res
+      - ../api/apps/user_app.py:/ragflow/api/apps/user_app.py
+      - ../api/db/init_data.py:/ragflow/api/db/init_data.py
+      - ../api/common/base64.py:/ragflow/api/common/base64.py
+      - ../admin/server/auth.py:/ragflow/admin/server/auth.py
+      - ../admin/server/routes.py:/ragflow/admin/server/routes.py
+      - ../api/db/services/system_setting_service.py:/ragflow/api/db/services/system_setting_service.py
+      - ../web/dist:/ragflow/web/dist
       - uv_tools_data:/ragflow/uv_tools
       - venv_data:/ragflow/.venv
     env_file: .env
