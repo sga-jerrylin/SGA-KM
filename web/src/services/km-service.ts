@@ -82,6 +82,9 @@ kmRequest.interceptors.response.use(
         description: i18n.t('message.networkAnomalyDescription'),
         message: i18n.t('message.networkAnomaly'),
       });
+    } else if (response?.status === 404) {
+      // KM service endpoints not available yet — silently ignore
+      throw error;
     } else if (response?.status === 401) {
       message.error({
         message: i18n.t('message.401'),

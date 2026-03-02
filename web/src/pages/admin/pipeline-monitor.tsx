@@ -381,7 +381,7 @@ const JobCard = ({
   const sourceName =
     job.source_filename ??
     (job.source_url
-      ? job.source_url.split('/').pop() ?? job.source_url
+      ? (job.source_url.split('/').pop() ?? job.source_url)
       : null) ??
     job.source_type;
 
@@ -638,18 +638,22 @@ const PipelineMonitor = () => {
   } = useQuery<IngestJob[]>({
     queryKey: ['km', 'ingest', 'list', filterState, searchText],
     queryFn: async () => {
-      const res = await listIngestJobs({
-        state: filterState !== 'all' ? filterState : undefined,
-        size: 100,
-      });
-      return res?.data?.data?.jobs ?? [];
+      try {
+        const res = await listIngestJobs({
+          state: filterState !== 'all' ? filterState : undefined,
+          size: 100,
+        });
+        return res?.data?.data?.jobs ?? [];
+      } catch {
+        return [];
+      }
     },
     refetchInterval: (query) => {
       const list = query.state.data as IngestJob[] | undefined;
       return list?.some((j) => isActive(j.state)) ? 3000 : false;
     },
     staleTime: 0,
-    retry: 1,
+    retry: false,
   });
 
   // ------------------------------------------------------------------
@@ -713,7 +717,7 @@ const PipelineMonitor = () => {
     const name =
       job.source_filename ??
       (job.source_url
-        ? job.source_url.split('/').pop() ?? job.source_url
+        ? (job.source_url.split('/').pop() ?? job.source_url)
         : null) ??
       job.source_type;
     const matchesSearch =

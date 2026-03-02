@@ -79,11 +79,15 @@ export function useKmHealth() {
     {
       queryKey: ['km', 'health'],
       queryFn: async () => {
-        const res = await getKmHealth();
-        return res?.data;
+        try {
+          const res = await getKmHealth();
+          return res?.data;
+        } catch {
+          return undefined;
+        }
       },
       staleTime: 30 * 1000, // cache 30 seconds
-      retry: 1,
+      retry: false,
     },
   );
 
@@ -105,12 +109,16 @@ export function useKmMetrics() {
   >({
     queryKey: ['km', 'metrics'],
     queryFn: async () => {
-      const res = await getKmMetrics();
-      return res?.data;
+      try {
+        const res = await getKmMetrics();
+        return res?.data;
+      } catch {
+        return undefined;
+      }
     },
     staleTime: 10 * 1000,
-    refetchInterval: 10 * 1000, // refetch every 10 seconds
-    retry: 1,
+    refetchInterval: false,
+    retry: false,
   });
 
   return {
@@ -159,12 +167,16 @@ export function useAuditLogs(page: number = 1, size: number = 20) {
   >({
     queryKey: ['km', 'audit-logs', page, size],
     queryFn: async () => {
-      const res = await getAuditLogs({ page, size });
-      return res?.data;
+      try {
+        const res = await getAuditLogs({ page, size });
+        return res?.data;
+      } catch {
+        return undefined;
+      }
     },
     staleTime: 30 * 1000, // cache 30 seconds per page
     placeholderData: (previousData) => previousData, // keep previous page visible while next loads
-    retry: 1,
+    retry: false,
   });
 
   return {
