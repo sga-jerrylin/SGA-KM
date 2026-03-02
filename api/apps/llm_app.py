@@ -218,10 +218,39 @@ async def add_llm():
         api_key = apikey_json(["api_key", "provider_order"])
 
     elif factory == "MinerU":
-        api_key = apikey_json(["api_key", "provider_order"])
+        # Keep MinerU structured settings from frontend payload.
+        # Frontend sends these fields in `api_key` as a dict.
+        mineru_cfg = req.get("api_key")
+        if isinstance(mineru_cfg, dict):
+            api_key = json.dumps(mineru_cfg, ensure_ascii=False)
+        elif isinstance(mineru_cfg, str) and mineru_cfg.strip().startswith("{"):
+            api_key = mineru_cfg
+        else:
+            api_key = apikey_json(
+                [
+                    "mineru_apiserver",
+                    "mineru_output_dir",
+                    "mineru_backend",
+                    "mineru_server_url",
+                    "mineru_delete_output",
+                ]
+            )
 
     elif factory == "PaddleOCR":
-        api_key = apikey_json(["api_key", "provider_order"])
+        # Keep PaddleOCR structured settings from frontend payload.
+        paddleocr_cfg = req.get("api_key")
+        if isinstance(paddleocr_cfg, dict):
+            api_key = json.dumps(paddleocr_cfg, ensure_ascii=False)
+        elif isinstance(paddleocr_cfg, str) and paddleocr_cfg.strip().startswith("{"):
+            api_key = paddleocr_cfg
+        else:
+            api_key = apikey_json(
+                [
+                    "paddleocr_api_url",
+                    "paddleocr_access_token",
+                    "paddleocr_algorithm",
+                ]
+            )
 
     llm = {
         "tenant_id": current_user.id,

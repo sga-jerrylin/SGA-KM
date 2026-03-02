@@ -11,7 +11,7 @@ import { IConnector, IKnowledge } from '@/interfaces/database/knowledge';
 import { useDataSourceInfo } from '@/pages/user-setting/data-source/constant';
 import { IDataSourceBase } from '@/pages/user-setting/data-source/interface';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { createContext, useEffect, useState } from 'react';
+import { createContext, useEffect, useMemo, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
@@ -40,7 +40,31 @@ export const DataSetContext = createContext<{
   knowledgeDetails: IKnowledge;
 }>({ loading: false, knowledgeDetails: {} as IKnowledge });
 
-const initialEntityTypes = ['组织', '人员', '地理位置', '事件', '类别'];
+const GRAPH_ENTITY_TYPE_ZH_MAP: Record<string, string> = {
+  organization: '组织',
+  person: '人员',
+  geo: '地理位置',
+  location: '地理位置',
+  event: '事件',
+  category: '类别',
+  time: '时间',
+};
+
+function normalizeGraphEntityTypes(
+  entityTypes: string[] | undefined,
+  language: string,
+): string[] | undefined {
+  if (!Array.isArray(entityTypes)) {
+    return entityTypes;
+  }
+  if (!language.toLowerCase().startsWith('zh')) {
+    return entityTypes;
+  }
+  return entityTypes.map((item) => {
+    const normalized = item.trim().toLowerCase();
+    return GRAPH_ENTITY_TYPE_ZH_MAP[normalized] ?? item;
+  });
+}
 
 const enum MethodValue {
   General = 'general',
@@ -48,7 +72,14 @@ const enum MethodValue {
 }
 
 export default function DatasetSettings() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const initialEntityTypes = useMemo(
+    () =>
+      i18n.language.toLowerCase().startsWith('zh')
+        ? ['组织', '人员', '地理位置', '事件', '类别']
+        : ['organization', 'person', 'geo', 'event', 'category'],
+    [i18n.language],
+  );
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -147,8 +178,18 @@ export default function DatasetSettings() {
       } as IGenerateLogButtonProps);
       form.setValue('parseType', knowledgeDetails.pipeline_id ? 2 : 1);
       form.setValue('pipeline_id', knowledgeDetails.pipeline_id || '');
+      const localizedEntityTypes = normalizeGraphEntityTypes(
+        knowledgeDetails.parser_config?.graphrag?.entity_types,
+        i18n.language,
+      );
+      if (localizedEntityTypes?.length) {
+        form.setValue(
+          'parser_config.graphrag.entity_types',
+          localizedEntityTypes,
+        );
+      }
     }
-  }, [knowledgeDetails, form]);
+  }, [knowledgeDetails, form, i18n.language]);
 
   async function onSubmit(data: z.infer<typeof formSchema>) {
     try {

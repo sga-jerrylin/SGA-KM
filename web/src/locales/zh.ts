@@ -349,6 +349,10 @@ export default {
       delimiter: `文本分段标识符`,
       delimiterTip:
         '支持多字符作为分隔符，多字符用两个反引号 \\`\\` 分隔符包裹。若配置成：\\n`##`; 系统将首先使用换行符、两个#号以及分号先对文本进行分割，随后再对分得的小文本块按照「建议文本块大小」设定的大小进行拼装。在设置文本分段标识符前请确保理解上述文本分段切片机制。',
+      enableChildrenDelimiter: '子文本块用于检索',
+      childrenDelimiter: '子文本块分段标识符',
+      childrenDelimiterTip:
+        '支持多字符分隔符；多个字符请用反引号包裹，例如：\\n##;。',
       html4excel: '表格转HTML',
       html4excelTip: `与 General 切片方法配合使用。未开启状态下，表格文件（XLSX、XLS（Excel 97-2003））会按行解析为键值对。开启后，表格文件会被解析为 HTML 表格。若原始表格超过 12 行，系统会自动按每 12 行拆分为多个 HTML 表格。欲了解更多详情，请参阅 https://ragflow.io/docs/dev/enable_excel2html。`,
       autoKeywords: '自动关键词提取',
@@ -396,6 +400,8 @@ export default {
       mineruParseMethod: '解析方法',
       mineruParseMethodTip:
         'PDF 解析方法：auto（自动检测）、txt（文本提取）、ocr（光学字符识别）',
+      mineruLanguage: '语言',
+      mineruLanguageTip: 'MinerU OCR 语言。留空时按知识库语言自动映射。',
       mineruFormulaEnable: '公式识别',
       mineruFormulaEnableTip:
         '启用公式识别。注意：对于西里尔文档可能无法正常工作。',
@@ -422,9 +428,14 @@ export default {
       rebuildTip: '从所有已关联的数据源重新下载文件并再次解析。',
       baseInfo: '基础信息',
       globalIndex: '全局索引',
+      globalIndexModel: '索引模型',
+      globalIndexModelTip:
+        '用于生成知识图谱、RAPTOR、自动元数据、自动关键词和自动问题。模型性能会影响生成质量。',
       dataSource: '数据源',
       linkSourceSetTip: '管理与此数据集的数据源链接',
       linkDataSource: '链接数据源',
+      tocExtraction: 'PageIndex',
+      overlappedPercent: '重叠百分比（%）',
       tocExtractionTip:
         '对于已有的chunk生成层级结构的目录信息（每个文件一个目录）。在查询时，激活`Page Index`后，系统会用大模型去判断用户问题和哪些目录项相关，从而找到相关的chunk。',
       deleteGenerateModalContent: `
@@ -450,6 +461,7 @@ export default {
       teamPlaceholder: '请选择团队',
       dataFlowPlaceholder: '请选择pipeline',
       buildItFromScratch: '去Scratch构建',
+      lastWeek: '最近一周',
       dataFlow: 'pipeline',
       parseType: '解析方法',
       manualSetup: '选择pipeline',

@@ -45,9 +45,12 @@ services:
       - ./entrypoint.sh:/ragflow/entrypoint.sh
       - ../rag/res:/ragflow/rag/res
       - ../api/apps/user_app.py:/ragflow/api/apps/user_app.py
+      - ../api/apps/llm_app.py:/ragflow/api/apps/llm_app.py
       - ../api/db/init_data.py:/ragflow/api/db/init_data.py
       - ../api/db/db_models.py:/ragflow/api/db/db_models.py
       - ../api/common/base64.py:/ragflow/api/common/base64.py
+      - ../rag/llm/chat_model.py:/ragflow/rag/llm/chat_model.py
+      - ../rag/llm/embedding_model.py:/ragflow/rag/llm/embedding_model.py
       - ../admin/server/auth.py:/ragflow/admin/server/auth.py
       - ../admin/server/routes.py:/ragflow/admin/server/routes.py
       - ../api/db/services/system_setting_service.py:/ragflow/api/db/services/system_setting_service.py
@@ -106,9 +109,12 @@ services:
       - ./entrypoint.sh:/ragflow/entrypoint.sh
       - ../rag/res:/ragflow/rag/res
       - ../api/apps/user_app.py:/ragflow/api/apps/user_app.py
+      - ../api/apps/llm_app.py:/ragflow/api/apps/llm_app.py
       - ../api/db/init_data.py:/ragflow/api/db/init_data.py
       - ../api/db/db_models.py:/ragflow/api/db/db_models.py
       - ../api/common/base64.py:/ragflow/api/common/base64.py
+      - ../rag/llm/chat_model.py:/ragflow/rag/llm/chat_model.py
+      - ../rag/llm/embedding_model.py:/ragflow/rag/llm/embedding_model.py
       - ../admin/server/auth.py:/ragflow/admin/server/auth.py
       - ../admin/server/routes.py:/ragflow/admin/server/routes.py
       - ../api/db/services/system_setting_service.py:/ragflow/api/db/services/system_setting_service.py

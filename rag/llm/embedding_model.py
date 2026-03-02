@@ -637,9 +637,73 @@ class OpenAI_APIEmbed(OpenAIEmbed):
     def __init__(self, key, model_name, base_url):
         if not base_url:
             raise ValueError("url cannot be None")
-        base_url = urljoin(base_url, "v1")
-        self.client = OpenAI(api_key=key, base_url=base_url)
+        self.api_key = key
         self.model_name = model_name.split("___")[0]
+        self.base_url = base_url.rstrip("/")
+        self._is_dashscope_multimodal_embedding = self._should_use_dashscope_multimodal_endpoint()
+
+        if self._is_dashscope_multimodal_embedding:
+            self.multimodal_embedding_url = self._normalize_dashscope_multimodal_url(self.base_url)
+            self.client = None
+            return
+
+        # Keep OpenAI-compatible behavior and avoid duplicate `/v1` suffix.
+        resolved_base_url = self.base_url if self.base_url.endswith("/v1") else f"{self.base_url}/v1"
+        self.client = OpenAI(api_key=key, base_url=resolved_base_url)
+
+    def _should_use_dashscope_multimodal_endpoint(self) -> bool:
+        model = self.model_name.lower()
+        return (
+            model.startswith("qwen3-vl-embedding")
+            and "dashscope.aliyuncs.com" in self.base_url
+            and "multimodal-embedding" in self.base_url
+        )
+
+    @staticmethod
+    def _normalize_dashscope_multimodal_url(base_url: str) -> str:
+        url = base_url.rstrip("/")
+        if url.endswith("/multimodal-embedding"):
+            return url
+        return f"{url}/multimodal-embedding"
+
+    def _dashscope_multimodal_encode(self, texts: list):
+        ress = []
+        total_tokens = 0
+        headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json",
+        }
+
+        for text in texts:
+            payload = {
+                "model": self.model_name,
+                "input": {"contents": [{"text": text}]},
+            }
+            response = requests.post(self.multimodal_embedding_url, headers=headers, json=payload)
+            if response.status_code != 200:
+                raise Exception(f"Error: {response.status_code} - {response.text}")
+            try:
+                res = response.json()
+                embeddings = res["output"]["embeddings"]
+                if not embeddings:
+                    raise ValueError("No embeddings found in response")
+                ress.append(embeddings[0]["embedding"])
+                total_tokens += int(res.get("usage", {}).get("input_tokens", num_tokens_from_string(text)))
+            except Exception as _e:
+                log_exception(_e, response)
+                raise Exception(f"Error: {response.text}")
+        return np.array(ress), total_tokens
+
+    def encode(self, texts: list):
+        if self._is_dashscope_multimodal_embedding:
+            return self._dashscope_multimodal_encode(texts)
+        return super().encode(texts)
+
+    def encode_queries(self, text):
+        if self._is_dashscope_multimodal_embedding:
+            embds, cnt = self._dashscope_multimodal_encode([text])
+            return np.array(embds[0]), cnt
+        return super().encode_queries(text)
 
 
 class CoHereEmbed(Base):

@@ -1,12 +1,1 @@
-._documentContainer_1twoc_1 {
-  width: 100%;
-  height: calc(100vh - 180px);
-  position: relative;
-}
-._documentContainer_1twoc_1 .PdfHighlighter {
-  overflow-x: hidden;
-}
-._documentContainer_1twoc_1 .Highlight--scrolledTo .Highlight__part {
-  overflow-x: hidden;
-  background-color: #ffe28f;
-}
+._documentContainer_1twoc_1{width:100%;height:calc(100vh - 180px);position:relative}._documentContainer_1twoc_1 .PdfHighlighter{overflow-x:hidden}._documentContainer_1twoc_1 .Highlight--scrolledTo .Highlight__part{overflow-x:hidden;background-color:#ffe28f}

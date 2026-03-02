@@ -1,2 +1,0 @@
-import{j as s}from"./react-Clxusn8M.js";import{c as a,x as r}from"../../entry/js/index-DO2-PIoQ.js";function e(e){const{className:c}=e;return s.jsxs("div",{className:a("space-y-4",c),children:[s.jsx(r,{className:"h-8 w-full bg-bg-card rounded-lg"}),s.jsx(r,{className:"h-8 w-4/5 bg-bg-card rounded-lg"}),s.jsx(r,{className:"h-8 w-3/5 bg-bg-card rounded-lg"})]})}export{e as S};
-//# sourceMappingURL=skeleton-card-COuvf9AR.js.map

@@ -27,6 +27,7 @@ from urllib.parse import urljoin
 import json_repair
 import litellm
 import openai
+import requests
 from openai import AsyncOpenAI, OpenAI
 from strenum import StrEnum
 
@@ -737,8 +738,143 @@ class OpenAI_APIChat(Base):
     def __init__(self, key, model_name, base_url, **kwargs):
         if not base_url:
             raise ValueError("url cannot be None")
+        self._api_key = key
         model_name = model_name.split("___")[0]
-        super().__init__(key, model_name, base_url, **kwargs)
+        self._raw_base_url = base_url.rstrip("/")
+        self._use_anthropic_protocol = self._is_anthropic_protocol_url(self._raw_base_url)
+        self._anthropic_base_url = self._normalize_anthropic_base_url(self._raw_base_url) if self._use_anthropic_protocol else ""
+
+        normalized_openai_base = self._normalize_openai_compatible_base_url(self._raw_base_url)
+        # Base class always initializes OpenAI clients; keep a safe bootstrap URL in anthropic mode.
+        bootstrap_base_url = "https://api.openai.com/v1" if self._use_anthropic_protocol else normalized_openai_base
+        super().__init__(key, model_name, bootstrap_base_url, **kwargs)
+
+    @staticmethod
+    def _is_anthropic_protocol_url(base_url: str) -> bool:
+        normalized = base_url.rstrip("/").lower()
+        return "/apps/anthropic" in normalized
+
+    @staticmethod
+    def _normalize_openai_compatible_base_url(base_url: str) -> str:
+        normalized = base_url.rstrip("/")
+        if "coding.dashscope.aliyuncs.com" in normalized:
+            if normalized == "https://coding.dashscope.aliyuncs.com":
+                return "https://coding.dashscope.aliyuncs.com/v1"
+        return normalized
+
+        return normalized
+
+    @staticmethod
+    def _normalize_anthropic_base_url(base_url: str) -> str:
+        normalized = base_url.rstrip("/")
+        if normalized.endswith("/v1/messages"):
+            return normalized[: -len("/v1/messages")]
+        if normalized.endswith("/v1"):
+            return normalized[: -len("/v1")]
+        return normalized
+
+    @staticmethod
+    def _to_text_content(content) -> str:
+        if isinstance(content, str):
+            return content
+        if isinstance(content, list):
+            texts = []
+            for part in content:
+                if isinstance(part, dict):
+                    if part.get("type") == "text":
+                        texts.append(str(part.get("text", "")))
+                    elif "text" in part:
+                        texts.append(str(part.get("text", "")))
+            return "".join(texts)
+        return str(content)
+
+    def _build_anthropic_payload(self, history, gen_conf: dict, **kwargs):
+        system = ""
+        messages = []
+        for msg in history or []:
+            role = msg.get("role")
+            if role == "system":
+                system = f"{system}\n{self._to_text_content(msg.get('content', ''))}".strip()
+                continue
+            if role not in {"user", "assistant"}:
+                continue
+            messages.append(
+                {
+                    "role": role,
+                    "content": self._to_text_content(msg.get("content", "")),
+                }
+            )
+
+        payload = {
+            "model": self.model_name,
+            "messages": messages,
+            "max_tokens": int(gen_conf.get("max_tokens", 1024)),
+        }
+        if system:
+            payload["system"] = system
+        if "temperature" in gen_conf:
+            payload["temperature"] = gen_conf["temperature"]
+        if "top_p" in gen_conf:
+            payload["top_p"] = gen_conf["top_p"]
+        if kwargs.get("stop"):
+            stop = kwargs["stop"]
+            payload["stop_sequences"] = stop if isinstance(stop, list) else [stop]
+        return payload
+
+    def _clean_conf(self, gen_conf):
+        if not self._use_anthropic_protocol:
+            return super()._clean_conf(gen_conf)
+
+        conf = deepcopy(gen_conf) if gen_conf else {}
+        cleaned = {}
+        if "temperature" in conf:
+            cleaned["temperature"] = conf["temperature"]
+        if "top_p" in conf:
+            cleaned["top_p"] = conf["top_p"]
+        if "max_tokens" in conf:
+            cleaned["max_tokens"] = conf["max_tokens"]
+        return cleaned
+
+    async def _async_chat(self, history, gen_conf, **kwargs):
+        if not self._use_anthropic_protocol:
+            return await super()._async_chat(history, gen_conf, **kwargs)
+
+        url = f"{self._anthropic_base_url}/v1/messages"
+        headers = {
+            "x-api-key": self._api_key,
+            "anthropic-version": "2023-06-01",
+            "content-type": "application/json",
+        }
+
+        payload = self._build_anthropic_payload(history, gen_conf, **kwargs)
+        response = await asyncio.to_thread(requests.post, url, headers=headers, json=payload, timeout=self.timeout)
+        if response.status_code != 200:
+            raise Exception(f"Error: {response.status_code} - {response.text}")
+
+        result = response.json()
+        text_parts = []
+        for item in result.get("content", []):
+            if isinstance(item, dict) and item.get("type") == "text":
+                text_parts.append(item.get("text", ""))
+        ans = "".join(text_parts).strip()
+        if result.get("stop_reason") == "max_tokens":
+            ans = self._length_stop(ans)
+
+        usage = result.get("usage", {}) or {}
+        token_count = int(usage.get("input_tokens", 0)) + int(usage.get("output_tokens", 0))
+        if not token_count:
+            token_count = num_tokens_from_string(ans)
+        return ans, token_count
+
+    async def async_chat_streamly(self, system, history, gen_conf: dict = {}, **kwargs):
+        if not self._use_anthropic_protocol:
+            async for item in super().async_chat_streamly(system, history, gen_conf, **kwargs):
+                yield item
+            return
+
+        ans, total_tokens = await self.async_chat(system, history, gen_conf, **kwargs)
+        yield ans
+        yield total_tokens
 
 
 class LeptonAIChat(Base):
