@@ -2389,7 +2389,9 @@ Tokenizer 会根据所选方式将内容存储为对应的数据结构。`,
 
       role: '角色',
       user: '用户',
+      userType: '用户类型',
       superuser: '超级管理员',
+      normalUser: '普通用户',
 
       createTime: '创建时间',
       lastLoginTime: '最后登录时间',
