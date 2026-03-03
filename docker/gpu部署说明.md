@@ -1,6 +1,6 @@
-﻿# GPU部署说明（v2.0.2）
+﻿# GPU部署说明（v2.0.3）
 
-本文用于在新机器上部署 `SGA-KM v2.0.2` 的 GPU 版本。
+本文用于在新机器上部署 `SGA-KM v2.0.3` 的 GPU 版本。
 
 ## 1. 前置条件
 
@@ -24,7 +24,7 @@ docker run --rm --gpus all nvidia/cuda:12.4.1-base-ubuntu22.04 nvidia-smi
 ```bash
 git clone https://github.com/sga-jerrylin/SGA-KM.git
 cd SGA-KM
-git checkout v2.0.2
+git checkout v2.0.3
 ```
 
 ## 3. 核对 `docker/.env`
@@ -45,6 +45,8 @@ ADMIN_SVR_HTTP_PORT=19381
 说明：
 - `AUTO_INSTALL_TORCH=0`：避免容器启动时重复装 torch。
 - `RAGFLOW_IMAGE` 不要写成 `ragflow-custom:latest`，否则新机器容易出现 `pull access denied`。
+- 若机器访问 `huggingface.co` 不稳定，建议在 `.env` 打开：
+  - `HF_ENDPOINT=https://hf-mirror.com`
 
 ## 4. 启动服务
 
@@ -91,6 +93,14 @@ curl http://127.0.0.1:19381/api/v1/admin/ping
 docker exec km-ragflow-gpu-1 nvidia-smi
 ```
 
+4. 校验 PDF 解析模型是否就绪（关键）：
+
+```bash
+docker exec km-ragflow-gpu-1 sh -lc "test -f /ragflow/rag/res/deepdoc/updown_concat_xgb.model && echo MODEL_OK || echo MODEL_MISSING"
+```
+
+应返回 `MODEL_OK`。
+
 ## 6. 首次登录
 
 - 访问：`http://<服务器IP>:18880/`
@@ -109,9 +119,14 @@ docker exec km-ragflow-gpu-1 nvidia-smi
   - `../web/dist:/ragflow/web/dist`
 
 3. Admin 系统设置报错 `GLOBAL_LLM_ENABLED`
-- 请确认代码版本是 `v2.0.2`（该兼容已在此版本修复）。
+- 请确认代码版本是 `v2.0.3`（该兼容已在此版本修复）。
 
-4. 需要彻底重置（会清空数据）
+4. PDF 解析报错：`updown_concat_xgb.model: No such file or directory`
+- 原因：`docker-compose` 使用 `../rag/res:/ragflow/rag/res` 挂载时，会以宿主机目录为准；若宿主机缺少该模型，容器内也会缺失。
+- `v2.0.3` 已在启动脚本中增加自动补齐逻辑：容器启动时会检查并下载该模型。
+- 若仍失败，通常是网络无法访问 HuggingFace，请在 `.env` 设置 `HF_ENDPOINT=https://hf-mirror.com` 后重启。
+
+5. 需要彻底重置（会清空数据）
 
 ```bash
 docker compose down -v

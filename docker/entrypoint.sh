@@ -231,6 +231,62 @@ function ensure_docling() {
       || uv pip install -i https://pypi.tuna.tsinghua.edu.cn/simple --extra-index-url https://pypi.org/simple --no-cache-dir "docling${DOCLING_PIN}"
 }
 
+function ensure_updown_concat_model() {
+    local model_dir="/ragflow/rag/res/deepdoc"
+    local model_file="${model_dir}/updown_concat_xgb.model"
+    local nested_model_file="${model_dir}/text_concat_xgb_v1.0/updown_concat_xgb.model"
+
+    if [[ -f "${model_file}" ]]; then
+        echo "[model] updown concat model exists: ${model_file}"
+        return 0
+    fi
+
+    if [[ -f "${nested_model_file}" ]]; then
+        cp "${nested_model_file}" "${model_file}"
+        echo "[model] copied updown concat model from nested path"
+        return 0
+    fi
+
+    echo "[model] updown concat model missing, downloading InfiniFlow/text_concat_xgb_v1.0 ..."
+    "$PY" - <<'PY'
+import os
+import shutil
+import sys
+from huggingface_hub import snapshot_download
+
+model_dir = "/ragflow/rag/res/deepdoc"
+target_model = os.path.join(model_dir, "updown_concat_xgb.model")
+nested_model = os.path.join(model_dir, "text_concat_xgb_v1.0", "updown_concat_xgb.model")
+
+try:
+    snapshot_download(
+        repo_id="InfiniFlow/text_concat_xgb_v1.0",
+        local_dir=model_dir,
+        local_dir_use_symlinks=False,
+    )
+except Exception as exc:
+    print(
+        f"[model] WARNING: failed to download InfiniFlow/text_concat_xgb_v1.0: {exc}",
+        file=sys.stderr,
+    )
+
+if os.path.exists(target_model):
+    print(f"[model] updown concat model ready: {target_model}")
+    raise SystemExit(0)
+
+if os.path.exists(nested_model):
+    shutil.copy2(nested_model, target_model)
+    print(f"[model] copied updown concat model from nested path: {nested_model}")
+    raise SystemExit(0)
+
+print(
+    "[model] WARNING: updown_concat_xgb.model is still missing. "
+    "PDF parsing may fail if network/mirror is unavailable.",
+    file=sys.stderr,
+)
+PY
+}
+
 function bootstrap_db_tables() {
     echo "Bootstrapping database tables..."
     "$PY" - <<'PY'
@@ -254,6 +310,7 @@ PY
 # Start components based on flags
 # -----------------------------------------------------------------------------
 ensure_docling
+ensure_updown_concat_model
 bootstrap_db_tables
 
 if [[ "${ENABLE_WEBSERVER}" -eq 1 ]]; then

@@ -88,24 +88,61 @@ class RAGFlowPdfParser:
             self.layouter = LayoutRecognizer(recognizer_domain)
         self.tbl_det = TableStructureRecognizer()
 
-        self.updown_cnt_mdl = xgb.Booster()
+        updown_cnt_mdl = xgb.Booster()
         try:
             pip_install_torch()
             import torch.cuda
 
             if torch.cuda.is_available():
-                self.updown_cnt_mdl.set_param({"device": "cuda"})
+                updown_cnt_mdl.set_param({"device": "cuda"})
         except Exception:
             logging.info("No torch found.")
-        try:
-            model_dir = os.path.join(get_project_base_directory(), "rag/res/deepdoc")
-            self.updown_cnt_mdl.load_model(os.path.join(model_dir, "updown_concat_xgb.model"))
-        except Exception:
-            model_dir = snapshot_download(repo_id="InfiniFlow/text_concat_xgb_v1.0", local_dir=os.path.join(get_project_base_directory(), "rag/res/deepdoc"), local_dir_use_symlinks=False)
-            self.updown_cnt_mdl.load_model(os.path.join(model_dir, "updown_concat_xgb.model"))
+        self.updown_cnt_mdl = self._load_updown_concat_model(updown_cnt_mdl)
 
         self.page_from = 0
         self.column_num = 1
+
+    @staticmethod
+    def _updown_model_candidates(model_dir):
+        return [
+            os.path.join(model_dir, "updown_concat_xgb.model"),
+            os.path.join(model_dir, "text_concat_xgb_v1.0", "updown_concat_xgb.model"),
+        ]
+
+    def _load_updown_concat_model(self, booster):
+        model_dir = os.path.join(get_project_base_directory(), "rag/res/deepdoc")
+        model_candidates = self._updown_model_candidates(model_dir)
+
+        for model_path in model_candidates:
+            if os.path.exists(model_path):
+                booster.load_model(model_path)
+                logging.info("Loaded updown concat model from %s", model_path)
+                return booster
+
+        try:
+            snapshot_download(
+                repo_id="InfiniFlow/text_concat_xgb_v1.0",
+                local_dir=model_dir,
+                local_dir_use_symlinks=False,
+            )
+        except Exception:
+            logging.exception(
+                "Failed to download InfiniFlow/text_concat_xgb_v1.0 into %s",
+                model_dir,
+            )
+            return None
+
+        for model_path in model_candidates:
+            if os.path.exists(model_path):
+                booster.load_model(model_path)
+                logging.info("Loaded updown concat model from %s", model_path)
+                return booster
+
+        logging.error(
+            "updown_concat_xgb.model is still missing under %s after download",
+            model_dir,
+        )
+        return None
 
     def __char_width(self, c):
         return (c["x1"] - c["x0"]) // max(len(c["text"]), 1)
@@ -948,6 +985,9 @@ class RAGFlowPdfParser:
                         continue
 
                     fea = self._updown_concat_features(up, down)
+                    if self.updown_cnt_mdl is None:
+                        i += 1
+                        continue
                     if self.updown_cnt_mdl.predict(xgb.DMatrix([fea]))[0] <= 0.5:
                         i += 1
                         continue
