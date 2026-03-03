@@ -2358,6 +2358,7 @@ Tokenizer 会根据所选方式将内容存储为对应的数据结构。`,
 
       serviceStatus: '服务状态',
       userManagement: '用户管理',
+      sandboxSettings: '\u6c99\u7bb1\u8bbe\u7f6e',
       registrationWhitelist: '注册白名单',
       roles: '角色管理',
       monitoring: '监控',

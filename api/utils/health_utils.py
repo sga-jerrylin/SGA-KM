@@ -235,17 +235,52 @@ def get_mysql_status():
 
 def check_minio_alive():
     start_time = timer()
+    host = str(settings.MINIO.get("host", "")).strip()
+    probe_timeout = float(os.environ.get("MINIO_HEALTH_CHECK_TIMEOUT", "3"))
+
+    def _elapsed_msg() -> str:
+        return f"Confirm elapsed: {(timer() - start_time) * 1000.0:.1f} ms."
+
+    # Prefer SDK probe first because it shares the same connection settings used by runtime storage.
+    sdk_error = None
     try:
-        response = requests.get(f'http://{settings.MINIO["host"]}/minio/health/live')
-        if response.status_code == 200:
-            return {"status": "alive", "message": f"Confirm elapsed: {(timer() - start_time) * 1000.0:.1f} ms."}
-        else:
-            return {"status": "timeout", "message": f"Confirm elapsed: {(timer() - start_time) * 1000.0:.1f} ms."}
+        storage_impl = getattr(settings, "STORAGE_IMPL", None)
+        if storage_impl and hasattr(storage_impl, "health"):
+            if bool(storage_impl.health()):
+                return {"status": "alive", "message": _elapsed_msg()}
     except Exception as e:
+        sdk_error = f"sdk probe error: {str(e)}"
+
+    if not host:
+        message = "error: minio host is empty."
+        if sdk_error:
+            message = f"{message} {sdk_error}"
         return {
             "status": "timeout",
-            "message": f"error: {str(e)}",
+            "message": message,
         }
+
+    if host.startswith(("http://", "https://")):
+        base_urls = [host.rstrip("/")]
+    else:
+        base_urls = [f"http://{host}", f"https://{host}"]
+
+    last_error = sdk_error
+    for base_url in base_urls:
+        for endpoint in ("/minio/health/live", "/minio/health/ready"):
+            url = f"{base_url}{endpoint}"
+            try:
+                response = requests.get(url, timeout=probe_timeout)
+                if response.status_code == 200:
+                    return {"status": "alive", "message": _elapsed_msg()}
+                last_error = f"{url} returned {response.status_code}"
+            except requests.RequestException as e:
+                last_error = f"{url} error: {str(e)}"
+
+    return {
+        "status": "timeout",
+        "message": f"error: {last_error}" if last_error else _elapsed_msg(),
+    }
 
 
 def get_redis_info():
