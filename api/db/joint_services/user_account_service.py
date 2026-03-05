@@ -99,6 +99,45 @@ def create_new_user(user_info: dict) -> dict:
         TenantLLMService.insert_many(tenant_llm)
         FileService.insert(file)
 
+        # Auto-join new user to all superusers' tenants for team KB visibility
+        try:
+            from api.db.db_models import User as UserModel
+            from common.constants import StatusEnum
+            superusers = UserModel.select(UserModel.id).where(
+                UserModel.is_superuser == True,
+                UserModel.status == StatusEnum.VALID.value,
+                UserModel.id != user_id,  # skip self if new user is also superuser
+            )
+            for su in superusers:
+                # Check if relation already exists
+                existing = UserTenantService.query(
+                    user_id=user_id, tenant_id=su.id)
+                if not existing:
+                    UserTenantService.insert(**{
+                        "tenant_id": su.id,
+                        "user_id": user_id,
+                        "invited_by": su.id,
+                        "role": UserTenantRole.NORMAL,
+                    })
+            # If new user is superuser, add all existing non-superuser users to this user's tenant
+            if user_info.get("is_superuser"):
+                all_users = UserModel.select(UserModel.id).where(
+                    UserModel.status == StatusEnum.VALID.value,
+                    UserModel.id != user_id,
+                )
+                for u in all_users:
+                    existing = UserTenantService.query(
+                        user_id=u.id, tenant_id=user_id)
+                    if not existing:
+                        UserTenantService.insert(**{
+                            "tenant_id": user_id,
+                            "user_id": u.id,
+                            "invited_by": user_id,
+                            "role": UserTenantRole.NORMAL,
+                        })
+        except Exception as e:
+            logging.warning(f"Auto-join superuser tenants failed (non-fatal): {e}")
+
         return {
             "success": True,
             "user_info": user_info,

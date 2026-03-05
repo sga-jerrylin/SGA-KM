@@ -167,6 +167,70 @@ def add_graph_templates():
             logging.exception(f"Add agent templates error: {e}")
 
 
+def ensure_superuser_team_membership():
+    """Ensure all users are members of every superuser's tenant, and vice versa.
+
+    This runs on every startup to fix missing team relationships so that
+    superusers' team-permission KBs are visible to all users without manual SQL.
+    """
+    from api.db.db_models import User, UserTenant
+    from common.constants import StatusEnum
+
+    try:
+        superusers = list(User.select(User.id).where(
+            User.is_superuser == True,
+            User.status == StatusEnum.VALID.value,
+        ))
+        if not superusers:
+            return
+
+        all_users = list(User.select(User.id).where(
+            User.status == StatusEnum.VALID.value,
+        ))
+
+        # Build set of existing (user_id, tenant_id) pairs for fast lookup
+        existing = set()
+        for ut in UserTenant.select(UserTenant.user_id, UserTenant.tenant_id).where(
+            UserTenant.status == StatusEnum.VALID.value
+        ):
+            existing.add((ut.user_id, ut.tenant_id))
+
+        to_insert = []
+        for su in superusers:
+            for u in all_users:
+                if u.id == su.id:
+                    continue
+                if (u.id, su.id) not in existing:
+                    to_insert.append({
+                        "tenant_id": su.id,
+                        "user_id": u.id,
+                        "invited_by": su.id,
+                        "role": UserTenantRole.NORMAL,
+                    })
+
+        if to_insert:
+            for record in to_insert:
+                UserTenantService.insert(**record)
+            logging.info(f"[team] Auto-added {len(to_insert)} user-tenant relationships for superuser team visibility")
+        else:
+            logging.info("[team] All users already in superuser tenants, no fix needed")
+
+        # Also fix superusers' existing KBs to have team permission
+        from api.db.db_models import Knowledgebase
+        from api.db import TenantPermission
+        su_ids = [su.id for su in superusers]
+        updated = (Knowledgebase.update({Knowledgebase.permission: TenantPermission.TEAM.value})
+                   .where(
+                       Knowledgebase.tenant_id.in_(su_ids),
+                       Knowledgebase.permission == TenantPermission.ME.value,
+                       Knowledgebase.status == StatusEnum.VALID.value,
+                   ).execute())
+        if updated:
+            logging.info(f"[team] Updated {updated} superuser KBs from 'me' to 'team' permission")
+    except Exception as e:
+        logging.warning(f"[team] ensure_superuser_team_membership failed (non-fatal): {e}")
+
+
 def init_web_data():
     start_time = time.time()
 
@@ -177,6 +241,7 @@ def init_web_data():
     #    init_superuser()
 
     add_graph_templates()
+    ensure_superuser_team_membership()
     init_message_id_sequence()
     init_memory_size_cache()
     fix_missing_tokenized_memory()

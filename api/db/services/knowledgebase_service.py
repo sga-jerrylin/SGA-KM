@@ -451,6 +451,13 @@ class KnowledgebaseService(CommonService):
             **kwargs # Includes optional fields such as description, language, permission, avatar, parser_config, etc.
         }
 
+        # Superuser's KBs default to team permission for team-wide visibility
+        if "permission" not in kwargs:
+            from api.db.services.user_service import UserService as _UserService
+            _user = _UserService.filter_by_id(tenant_id)
+            if _user and _user.is_superuser:
+                payload["permission"] = TenantPermission.TEAM.value
+
         # Update parser_config (always override with validated default/merged config)
         payload["parser_config"] = get_parser_config(parser_id, kwargs.get("parser_config"))
         payload["parser_config"]["llm_id"] = _t.llm_id
