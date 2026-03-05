@@ -54,6 +54,7 @@ services:
       - ../admin/server/auth.py:/ragflow/admin/server/auth.py
       - ../admin/server/routes.py:/ragflow/admin/server/routes.py
       - ../api/db/services/system_setting_service.py:/ragflow/api/db/services/system_setting_service.py
+      - ../api/db/services/tenant_llm_service.py:/ragflow/api/db/services/tenant_llm_service.py
       - uv_tools_data:/ragflow/uv_tools
       - venv_data:/ragflow/.venv
     env_file: .env
@@ -93,6 +94,7 @@ services:
     command:
       - --enable-adminserver
       - --init-superuser
+      - --workers=1
     ports:
       - ${SVR_WEB_HTTP_PORT}:80
       - ${SVR_WEB_HTTPS_PORT}:443
@@ -118,6 +120,7 @@ services:
       - ../admin/server/auth.py:/ragflow/admin/server/auth.py
       - ../admin/server/routes.py:/ragflow/admin/server/routes.py
       - ../api/db/services/system_setting_service.py:/ragflow/api/db/services/system_setting_service.py
+      - ../api/db/services/tenant_llm_service.py:/ragflow/api/db/services/tenant_llm_service.py
       - uv_tools_data:/ragflow/uv_tools
       - venv_data:/ragflow/.venv
     env_file: .env

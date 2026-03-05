@@ -25,7 +25,7 @@ from api.db.services.llm_service import LLMService
 from api.db.services.system_setting_service import SystemSettingService
 from api.utils.api_utils import get_allowed_llm_factories, get_data_error_result, get_json_result, get_request_json, server_error_response, validate_request
 from common.constants import StatusEnum, LLMType
-from api.db.db_models import TenantLLM
+from api.db.db_models import TenantLLM, User
 from rag.utils.base64_image import test_image
 from rag.llm import EmbeddingModel, ChatModel, RerankModel, CvModel, TTSModel, OcrModel, Seq2txtModel
 
@@ -33,7 +33,20 @@ from rag.llm import EmbeddingModel, ChatModel, RerankModel, CvModel, TTSModel, O
 def _resolve_llm_tenant_id():
     config_tenant_id = current_user.id
     if SystemSettingService.get_global_llm_enabled():
-        admin_tenant_id = TenantLLMService.get_admin_tenant_id()
+        admin_tenant_id = None
+        get_admin_tenant_id = getattr(TenantLLMService, "get_admin_tenant_id", None)
+
+        if callable(get_admin_tenant_id):
+            admin_tenant_id = get_admin_tenant_id()
+        else:
+            logging.warning(
+                "TenantLLMService.get_admin_tenant_id is unavailable. "
+                "Falling back to direct superuser lookup."
+            )
+            admin_users = User.select(User.id).where(User.is_superuser == True).limit(1)
+            if admin_users:
+                admin_tenant_id = admin_users[0].id
+
         if admin_tenant_id:
             config_tenant_id = admin_tenant_id
     return config_tenant_id

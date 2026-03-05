@@ -89,12 +89,7 @@ def by_mineru(
             try:
                 from api.db.services.tenant_llm_service import TenantLLMService
 
-                env_name = TenantLLMService.ensure_mineru_from_env(tenant_id)
-                candidates = TenantLLMService.query(tenant_id=tenant_id, llm_factory="MinerU", model_type=LLMType.OCR)
-                if candidates:
-                    mineru_llm_name = candidates[0].llm_name
-                elif env_name:
-                    mineru_llm_name = env_name
+                mineru_llm_name = TenantLLMService.resolve_mineru_model_name(tenant_id)
             except Exception as e:  # best-effort fallback
                 logging.warning(f"fallback to env mineru: {e}")
 

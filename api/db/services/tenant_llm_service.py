@@ -58,6 +58,44 @@ class TenantLLMService(CommonService):
         cls._admin_tenant_id_cache = None
 
     @classmethod
+    def resolve_config_tenant_id(cls, tenant_id: str) -> str:
+        """
+        Resolve which tenant owns the effective LLM configuration.
+        When global LLM is enabled, this is the admin tenant.
+        """
+        config_tenant_id = tenant_id
+        if SystemSettingService.get_global_llm_enabled():
+            admin_tenant_id = cls.get_admin_tenant_id()
+            if admin_tenant_id:
+                config_tenant_id = admin_tenant_id
+        return config_tenant_id
+
+    @classmethod
+    @DB.connection_context()
+    def resolve_mineru_model_name(cls, tenant_id: str) -> str | None:
+        """
+        Resolve an available MinerU model name for parsing.
+        Prefer the effective config tenant (admin when global LLM is enabled),
+        and fallback to the request tenant for compatibility.
+        """
+        candidate_tenant_ids = []
+        config_tenant_id = cls.resolve_config_tenant_id(tenant_id)
+        if config_tenant_id:
+            candidate_tenant_ids.append(config_tenant_id)
+        if tenant_id and tenant_id not in candidate_tenant_ids:
+            candidate_tenant_ids.append(tenant_id)
+
+        for candidate_tenant_id in candidate_tenant_ids:
+            env_name = cls.ensure_mineru_from_env(candidate_tenant_id)
+            candidates = cls.query(tenant_id=candidate_tenant_id, llm_factory="MinerU", model_type=LLMType.OCR.value)
+            if candidates:
+                return candidates[0].llm_name
+            if env_name:
+                return env_name
+
+        return None
+
+    @classmethod
     @DB.connection_context()
     def get_api_key(cls, tenant_id, model_name):
         mdlnm, fid = TenantLLMService.split_model_name_and_factory(model_name)
@@ -118,15 +156,9 @@ class TenantLLMService(CommonService):
 
         global_llm_enabled = SystemSettingService.get_global_llm_enabled()
 
-        # Determine which tenant's LLM config to use based on GLOBAL_LLM_ENABLED
-        # When GLOBAL_LLM_ENABLED is True, use admin's LLM configuration (API key, base URL)
-        # When False, use the current tenant's own configuration
-        config_tenant_id = tenant_id
-        if global_llm_enabled:
-            admin_tenant_id = cls.get_admin_tenant_id()
-            if admin_tenant_id:
-                config_tenant_id = admin_tenant_id
-                logging.debug(f"GLOBAL_LLM_ENABLED: Using admin tenant {admin_tenant_id} for LLM config")
+        config_tenant_id = cls.resolve_config_tenant_id(tenant_id)
+        if global_llm_enabled and config_tenant_id != tenant_id:
+            logging.debug(f"GLOBAL_LLM_ENABLED: Using admin tenant {config_tenant_id} for LLM config")
 
         if llm_type == LLMType.EMBEDDING.value:
             mdlnm = tenant.embd_id if not llm_name else llm_name
@@ -283,6 +315,12 @@ class TenantLLMService(CommonService):
         """
         cfg = cls._collect_mineru_env_config()
         if not cfg:
+            if SystemSettingService.get_global_llm_enabled():
+                config_tenant_id = cls.resolve_config_tenant_id(tenant_id)
+                if config_tenant_id and config_tenant_id != tenant_id:
+                    shared_models = cls.query(tenant_id=config_tenant_id, llm_factory="MinerU", model_type=LLMType.OCR.value)
+                    if shared_models:
+                        return shared_models[0].llm_name
             return None
 
         saved_mineru_models = cls.query(tenant_id=tenant_id, llm_factory="MinerU", model_type=LLMType.OCR.value)

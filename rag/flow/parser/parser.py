@@ -258,11 +258,7 @@ class Parser(ProcessBase):
 
                 from api.db.services.tenant_llm_service import TenantLLMService
 
-                env_name = TenantLLMService.ensure_mineru_from_env(tenant_id)
-                candidates = TenantLLMService.query(tenant_id=tenant_id, llm_factory="MinerU", model_type=LLMType.OCR.value)
-                if candidates:
-                    return candidates[0].llm_name
-                return env_name
+                return TenantLLMService.resolve_mineru_model_name(tenant_id)
 
             parser_model_name = resolve_mineru_llm_name()
             if not parser_model_name:
